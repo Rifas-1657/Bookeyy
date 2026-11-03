@@ -1,0 +1,853 @@
+{
+ "pageId": "lesson_python_1_1",
+ "mime": "audio/mpeg",
+ "durationMs": 82740,
+ "wordTimings": [
+  {
+   "word": "Vanakkam!",
+   "startMs": 40,
+   "endMs": 1470,
+   "wordIndex": 0
+  },
+  {
+   "word": "Indha",
+   "startMs": 1860,
+   "endMs": 2309,
+   "wordIndex": 1
+  },
+  {
+   "word": "page-la",
+   "startMs": 2309,
+   "endMs": 2759,
+   "wordIndex": 2
+  },
+  {
+   "word": "oru",
+   "startMs": 2759,
+   "endMs": 3058,
+   "wordIndex": 3
+  },
+  {
+   "word": "variable",
+   "startMs": 3058,
+   "endMs": 3807,
+   "wordIndex": 4
+  },
+  {
+   "word": "na",
+   "startMs": 3807,
+   "endMs": 3957,
+   "wordIndex": 5
+  },
+  {
+   "word": "enna",
+   "startMs": 3957,
+   "endMs": 4407,
+   "wordIndex": 6
+  },
+  {
+   "word": "nu",
+   "startMs": 4407,
+   "endMs": 4556,
+   "wordIndex": 7
+  },
+  {
+   "word": "paarkalaam.",
+   "startMs": 4556,
+   "endMs": 5680,
+   "wordIndex": 8
+  },
+  {
+   "word": "Oru",
+   "startMs": 6070,
+   "endMs": 6319,
+   "wordIndex": 9
+  },
+  {
+   "word": "program-ku,",
+   "startMs": 6319,
+   "endMs": 7289,
+   "wordIndex": 10
+  },
+  {
+   "word": "work",
+   "startMs": 7289,
+   "endMs": 7662,
+   "wordIndex": 11
+  },
+  {
+   "word": "pannura",
+   "startMs": 7662,
+   "endMs": 8159,
+   "wordIndex": 12
+  },
+  {
+   "word": "information-a",
+   "startMs": 8159,
+   "endMs": 9030,
+   "wordIndex": 13
+  },
+  {
+   "word": "ninaivula",
+   "startMs": 9030,
+   "endMs": 9527,
+   "wordIndex": 14
+  },
+  {
+   "word": "vechukka",
+   "startMs": 9527,
+   "endMs": 10149,
+   "wordIndex": 15
+  },
+  {
+   "word": "oru",
+   "startMs": 10149,
+   "endMs": 10397,
+   "wordIndex": 16
+  },
+  {
+   "word": "idam",
+   "startMs": 10397,
+   "endMs": 10770,
+   "wordIndex": 17
+  },
+  {
+   "word": "venum.",
+   "startMs": 10770,
+   "endMs": 11330,
+   "wordIndex": 18
+  },
+  {
+   "word": "Adhu",
+   "startMs": 11720,
+   "endMs": 12137,
+   "wordIndex": 19
+  },
+  {
+   "word": "thaan",
+   "startMs": 12137,
+   "endMs": 12554,
+   "wordIndex": 20
+  },
+  {
+   "word": "variable.",
+   "startMs": 12554,
+   "endMs": 13910,
+   "wordIndex": 21
+  },
+  {
+   "word": "Variable",
+   "startMs": 14300,
+   "endMs": 15056,
+   "wordIndex": 22
+  },
+  {
+   "word": "na",
+   "startMs": 15056,
+   "endMs": 15208,
+   "wordIndex": 23
+  },
+  {
+   "word": "oru",
+   "startMs": 15208,
+   "endMs": 15510,
+   "wordIndex": 24
+  },
+  {
+   "word": "labeled",
+   "startMs": 15510,
+   "endMs": 16115,
+   "wordIndex": 25
+  },
+  {
+   "word": "box",
+   "startMs": 16115,
+   "endMs": 16569,
+   "wordIndex": 26
+  },
+  {
+   "word": "maari.",
+   "startMs": 16569,
+   "endMs": 17250,
+   "wordIndex": 27
+  },
+  {
+   "word": "Box",
+   "startMs": 17640,
+   "endMs": 18016,
+   "wordIndex": 28
+  },
+  {
+   "word": "mela",
+   "startMs": 18016,
+   "endMs": 18267,
+   "wordIndex": 29
+  },
+  {
+   "word": "irukkira",
+   "startMs": 18267,
+   "endMs": 18894,
+   "wordIndex": 30
+  },
+  {
+   "word": "label",
+   "startMs": 18894,
+   "endMs": 19271,
+   "wordIndex": 31
+  },
+  {
+   "word": "thaan",
+   "startMs": 19271,
+   "endMs": 19521,
+   "wordIndex": 32
+  },
+  {
+   "word": "variable",
+   "startMs": 19521,
+   "endMs": 20148,
+   "wordIndex": 33
+  },
+  {
+   "word": "name,",
+   "startMs": 20148,
+   "endMs": 20500,
+   "wordIndex": 34
+  },
+  {
+   "word": "box-kulla",
+   "startMs": 20500,
+   "endMs": 21252,
+   "wordIndex": 35
+  },
+  {
+   "word": "irukkirathu",
+   "startMs": 21252,
+   "endMs": 22005,
+   "wordIndex": 36
+  },
+  {
+   "word": "thaan",
+   "startMs": 22005,
+   "endMs": 22256,
+   "wordIndex": 37
+  },
+  {
+   "word": "value.",
+   "startMs": 22256,
+   "endMs": 22820,
+   "wordIndex": 38
+  },
+  {
+   "word": "Inga",
+   "startMs": 23210,
+   "endMs": 23640,
+   "wordIndex": 39
+  },
+  {
+   "word": "x",
+   "startMs": 23640,
+   "endMs": 24071,
+   "wordIndex": 40
+  },
+  {
+   "word": "=",
+   "startMs": 24071,
+   "endMs": 24788,
+   "wordIndex": 41
+  },
+  {
+   "word": "10",
+   "startMs": 24788,
+   "endMs": 25075,
+   "wordIndex": 42
+  },
+  {
+   "word": "nu",
+   "startMs": 25075,
+   "endMs": 25219,
+   "wordIndex": 43
+  },
+  {
+   "word": "ezhudhuna,",
+   "startMs": 25219,
+   "endMs": 25908,
+   "wordIndex": 44
+  },
+  {
+   "word": "Python",
+   "startMs": 25908,
+   "endMs": 26338,
+   "wordIndex": 45
+  },
+  {
+   "word": "10-a",
+   "startMs": 26338,
+   "endMs": 26625,
+   "wordIndex": 46
+  },
+  {
+   "word": "memory-la",
+   "startMs": 26625,
+   "endMs": 27199,
+   "wordIndex": 47
+  },
+  {
+   "word": "store",
+   "startMs": 27199,
+   "endMs": 27629,
+   "wordIndex": 48
+  },
+  {
+   "word": "pannum,",
+   "startMs": 27629,
+   "endMs": 28318,
+   "wordIndex": 49
+  },
+  {
+   "word": "x",
+   "startMs": 28318,
+   "endMs": 28749,
+   "wordIndex": 50
+  },
+  {
+   "word": "nra",
+   "startMs": 28749,
+   "endMs": 29036,
+   "wordIndex": 51
+  },
+  {
+   "word": "peru",
+   "startMs": 29036,
+   "endMs": 29322,
+   "wordIndex": 52
+  },
+  {
+   "word": "andha",
+   "startMs": 29322,
+   "endMs": 29753,
+   "wordIndex": 53
+  },
+  {
+   "word": "value-a",
+   "startMs": 29753,
+   "endMs": 30327,
+   "wordIndex": 54
+  },
+  {
+   "word": "point",
+   "startMs": 30327,
+   "endMs": 30901,
+   "wordIndex": 55
+  },
+  {
+   "word": "pannum.",
+   "startMs": 30901,
+   "endMs": 31690,
+   "wordIndex": 56
+  },
+  {
+   "word": "Aduthu",
+   "startMs": 32080,
+   "endMs": 32659,
+   "wordIndex": 57
+  },
+  {
+   "word": "print(x)",
+   "startMs": 32659,
+   "endMs": 33817,
+   "wordIndex": 58
+  },
+  {
+   "word": "ezhudhina,",
+   "startMs": 33817,
+   "endMs": 34512,
+   "wordIndex": 59
+  },
+  {
+   "word": "Python",
+   "startMs": 34512,
+   "endMs": 34947,
+   "wordIndex": 60
+  },
+  {
+   "word": "box-a",
+   "startMs": 34947,
+   "endMs": 35381,
+   "wordIndex": 61
+  },
+  {
+   "word": "thirandhu",
+   "startMs": 35381,
+   "endMs": 35960,
+   "wordIndex": 62
+  },
+  {
+   "word": "10-a",
+   "startMs": 35960,
+   "endMs": 36250,
+   "wordIndex": 63
+  },
+  {
+   "word": "screen-la",
+   "startMs": 36250,
+   "endMs": 36974,
+   "wordIndex": 64
+  },
+  {
+   "word": "kaattum.",
+   "startMs": 36974,
+   "endMs": 37770,
+   "wordIndex": 65
+  },
+  {
+   "word": "type(x)",
+   "startMs": 38160,
+   "endMs": 39220,
+   "wordIndex": 66
+  },
+  {
+   "word": "kettaa,",
+   "startMs": 39220,
+   "endMs": 39891,
+   "wordIndex": 67
+  },
+  {
+   "word": "adhu",
+   "startMs": 39891,
+   "endMs": 40244,
+   "wordIndex": 68
+  },
+  {
+   "word": "int",
+   "startMs": 40244,
+   "endMs": 40774,
+   "wordIndex": 69
+  },
+  {
+   "word": "nu",
+   "startMs": 40774,
+   "endMs": 40951,
+   "wordIndex": 70
+  },
+  {
+   "word": "solludhu,",
+   "startMs": 40951,
+   "endMs": 41799,
+   "wordIndex": 71
+  },
+  {
+   "word": "because",
+   "startMs": 41799,
+   "endMs": 42329,
+   "wordIndex": 72
+  },
+  {
+   "word": "10",
+   "startMs": 42329,
+   "endMs": 42682,
+   "wordIndex": 73
+  },
+  {
+   "word": "oru",
+   "startMs": 42682,
+   "endMs": 43035,
+   "wordIndex": 74
+  },
+  {
+   "word": "whole",
+   "startMs": 43035,
+   "endMs": 43388,
+   "wordIndex": 75
+  },
+  {
+   "word": "number.",
+   "startMs": 43388,
+   "endMs": 44360,
+   "wordIndex": 76
+  },
+  {
+   "word": "Score,",
+   "startMs": 44750,
+   "endMs": 45329,
+   "wordIndex": 77
+  },
+  {
+   "word": "username,",
+   "startMs": 45329,
+   "endMs": 46212,
+   "wordIndex": 78
+  },
+  {
+   "word": "price,",
+   "startMs": 46212,
+   "endMs": 46790,
+   "wordIndex": 79
+  },
+  {
+   "word": "edhaiyum",
+   "startMs": 46790,
+   "endMs": 47399,
+   "wordIndex": 80
+  },
+  {
+   "word": "store",
+   "startMs": 47399,
+   "endMs": 47856,
+   "wordIndex": 81
+  },
+  {
+   "word": "pannalaam,",
+   "startMs": 47856,
+   "endMs": 48739,
+   "wordIndex": 82
+  },
+  {
+   "word": "logic-a",
+   "startMs": 48739,
+   "endMs": 49196,
+   "wordIndex": 83
+  },
+  {
+   "word": "mattum",
+   "startMs": 49196,
+   "endMs": 49805,
+   "wordIndex": 84
+  },
+  {
+   "word": "oru",
+   "startMs": 49805,
+   "endMs": 50109,
+   "wordIndex": 85
+  },
+  {
+   "word": "thadavai",
+   "startMs": 50109,
+   "endMs": 50566,
+   "wordIndex": 86
+  },
+  {
+   "word": "ezhudhina",
+   "startMs": 50566,
+   "endMs": 51175,
+   "wordIndex": 87
+  },
+  {
+   "word": "podhum.",
+   "startMs": 51175,
+   "endMs": 51860,
+   "wordIndex": 88
+  },
+  {
+   "word": "Ippo",
+   "startMs": 52250,
+   "endMs": 52658,
+   "wordIndex": 89
+  },
+  {
+   "word": "code-a",
+   "startMs": 52658,
+   "endMs": 52930,
+   "wordIndex": 90
+  },
+  {
+   "word": "run",
+   "startMs": 52930,
+   "endMs": 53202,
+   "wordIndex": 91
+  },
+  {
+   "word": "pannitu",
+   "startMs": 53202,
+   "endMs": 53882,
+   "wordIndex": 92
+  },
+  {
+   "word": "output-a",
+   "startMs": 53882,
+   "endMs": 54562,
+   "wordIndex": 93
+  },
+  {
+   "word": "paarunga.",
+   "startMs": 54562,
+   "endMs": 55310,
+   "wordIndex": 94
+  },
+  {
+   "word": "Appuram",
+   "startMs": 55700,
+   "endMs": 56389,
+   "wordIndex": 95
+  },
+  {
+   "word": "x",
+   "startMs": 56389,
+   "endMs": 56802,
+   "wordIndex": 96
+  },
+  {
+   "word": "value-a",
+   "startMs": 56802,
+   "endMs": 57354,
+   "wordIndex": 97
+  },
+  {
+   "word": "maathi,",
+   "startMs": 57354,
+   "endMs": 57877,
+   "wordIndex": 98
+  },
+  {
+   "word": "thirumba",
+   "startMs": 57877,
+   "endMs": 58429,
+   "wordIndex": 99
+  },
+  {
+   "word": "run",
+   "startMs": 58429,
+   "endMs": 58704,
+   "wordIndex": 100
+  },
+  {
+   "word": "pannunga.",
+   "startMs": 58704,
+   "endMs": 59600,
+   "wordIndex": 101
+  },
+  {
+   "word": "Output",
+   "startMs": 59990,
+   "endMs": 61075,
+   "wordIndex": 102
+  },
+  {
+   "word": "maarum,",
+   "startMs": 61075,
+   "endMs": 61900,
+   "wordIndex": 103
+  },
+  {
+   "word": "ana",
+   "startMs": 61900,
+   "endMs": 62334,
+   "wordIndex": 104
+  },
+  {
+   "word": "idea",
+   "startMs": 62334,
+   "endMs": 62985,
+   "wordIndex": 105
+  },
+  {
+   "word": "ore",
+   "startMs": 62985,
+   "endMs": 63419,
+   "wordIndex": 106
+  },
+  {
+   "word": "madhiri",
+   "startMs": 63419,
+   "endMs": 64070,
+   "wordIndex": 107
+  },
+  {
+   "word": "thaan.",
+   "startMs": 64070,
+   "endMs": 64830,
+   "wordIndex": 108
+  },
+  {
+   "word": "Konjam",
+   "startMs": 65220,
+   "endMs": 65702,
+   "wordIndex": 109
+  },
+  {
+   "word": "neram",
+   "startMs": 65702,
+   "endMs": 66064,
+   "wordIndex": 110
+  },
+  {
+   "word": "edutthu,",
+   "startMs": 66064,
+   "endMs": 66643,
+   "wordIndex": 111
+  },
+  {
+   "word": "unga",
+   "startMs": 66643,
+   "endMs": 67005,
+   "wordIndex": 112
+  },
+  {
+   "word": "mind-la",
+   "startMs": 67005,
+   "endMs": 67487,
+   "wordIndex": 113
+  },
+  {
+   "word": "oru",
+   "startMs": 67487,
+   "endMs": 67728,
+   "wordIndex": 114
+  },
+  {
+   "word": "chinna",
+   "startMs": 67728,
+   "endMs": 68090,
+   "wordIndex": 115
+  },
+  {
+   "word": "example",
+   "startMs": 68090,
+   "endMs": 68814,
+   "wordIndex": 116
+  },
+  {
+   "word": "yosichu",
+   "startMs": 68814,
+   "endMs": 69296,
+   "wordIndex": 117
+  },
+  {
+   "word": "paarunga:",
+   "startMs": 69296,
+   "endMs": 69875,
+   "wordIndex": 118
+  },
+  {
+   "word": "unga",
+   "startMs": 69875,
+   "endMs": 70237,
+   "wordIndex": 119
+  },
+  {
+   "word": "phone-la",
+   "startMs": 70237,
+   "endMs": 70719,
+   "wordIndex": 120
+  },
+  {
+   "word": "contact",
+   "startMs": 70719,
+   "endMs": 71322,
+   "wordIndex": 121
+  },
+  {
+   "word": "name-um",
+   "startMs": 71322,
+   "endMs": 71684,
+   "wordIndex": 122
+  },
+  {
+   "word": "number-um",
+   "startMs": 71684,
+   "endMs": 72287,
+   "wordIndex": 123
+  },
+  {
+   "word": "irukku.",
+   "startMs": 72287,
+   "endMs": 72950,
+   "wordIndex": 124
+  },
+  {
+   "word": "Name",
+   "startMs": 73340,
+   "endMs": 73693,
+   "wordIndex": 125
+  },
+  {
+   "word": "thaan",
+   "startMs": 73693,
+   "endMs": 74046,
+   "wordIndex": 126
+  },
+  {
+   "word": "label,",
+   "startMs": 74046,
+   "endMs": 74717,
+   "wordIndex": 127
+  },
+  {
+   "word": "number",
+   "startMs": 74717,
+   "endMs": 75423,
+   "wordIndex": 128
+  },
+  {
+   "word": "thaan",
+   "startMs": 75423,
+   "endMs": 75776,
+   "wordIndex": 129
+  },
+  {
+   "word": "value.",
+   "startMs": 75776,
+   "endMs": 76570,
+   "wordIndex": 130
+  },
+  {
+   "word": "Adhe",
+   "startMs": 76960,
+   "endMs": 77307,
+   "wordIndex": 131
+  },
+  {
+   "word": "madhiri",
+   "startMs": 77307,
+   "endMs": 77828,
+   "wordIndex": 132
+  },
+  {
+   "word": "thaan",
+   "startMs": 77828,
+   "endMs": 78175,
+   "wordIndex": 133
+  },
+  {
+   "word": "Python-um",
+   "startMs": 78175,
+   "endMs": 78869,
+   "wordIndex": 134
+  },
+  {
+   "word": "velai",
+   "startMs": 78869,
+   "endMs": 79216,
+   "wordIndex": 135
+  },
+  {
+   "word": "pannum,",
+   "startMs": 79216,
+   "endMs": 80050,
+   "wordIndex": 136
+  },
+  {
+   "word": "so",
+   "startMs": 80050,
+   "endMs": 80223,
+   "wordIndex": 137
+  },
+  {
+   "word": "idha",
+   "startMs": 80223,
+   "endMs": 80570,
+   "wordIndex": 138
+  },
+  {
+   "word": "nalla",
+   "startMs": 80570,
+   "endMs": 81091,
+   "wordIndex": 139
+  },
+  {
+   "word": "purinjikonga.",
+   "startMs": 81091,
+   "endMs": 82740,
+   "wordIndex": 140
+  }
+ ]
+}

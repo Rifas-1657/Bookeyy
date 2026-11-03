@@ -1,0 +1,95 @@
+# Bookey Backend — Python 3.11+
+# Install: pip install -r requirements.txt
+
+# --- Web framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=13.0
+python-multipart>=0.0.12   # form data / file uploads
+
+# --- Data validation ---
+pydantic[email]>=2.8.0
+pydantic-settings>=2.4.0
+
+# --- Database ---
+sqlalchemy[asyncio]>=2.0.36
+alembic>=1.13.3
+aiosqlite>=0.20.0
+asyncpg>=0.30.0
+
+# --- Auth ---
+argon2-cffi>=23.1.0        # argon2id password hashing
+pyjwt[crypto]>=2.9.0       # JWT access + refresh tokens
+
+# --- HTTP client — used for URL ingestion (Phase-1) and tests ---
+# httpx is required at runtime for URL fetching in url_fetcher.py.
+# The [http2] extra adds h2 for HTTP/2 support (optional but recommended).
+httpx[http2]>=0.27.0
+
+# --- Rate limiting ---
+slowapi>=0.1.9             # per-IP and per-user rate limits
+
+# --- Logging ---
+structlog>=24.4.0          # structured JSON logging with request ids
+
+# --- Misc ---
+python-dotenv>=1.0.1
+
+# ============================================================
+# B2: Knowledge base
+# ============================================================
+
+# --- Document parsing ---
+pymupdf>=1.24.0            # PDF parsing (fitz); primary parser
+pypdf>=4.3.0               # PDF fallback parser (when fitz unavailable)
+python-docx>=1.1.0         # DOCX parsing
+python-pptx>=1.0.0         # PPTX parsing (slides, bullets, tables, speaker notes)
+
+# --- Phase-1: OCR for scanned PDFs ---
+# pymupdf bundles its own Tesseract binding via get_textpage_ocr().
+# Tesseract itself must be installed at the OS level:
+#   Ubuntu/Debian: apt-get install tesseract-ocr tesseract-ocr-eng
+#   macOS:         brew install tesseract
+#   Windows:       https://github.com/UB-Mannheim/tesseract/wiki
+# No extra Python package is required — fitz calls the tesseract binary directly.
+# OCR is skipped gracefully (RuntimeError caught) when tesseract is not installed.
+
+# --- Tokenisation (chunking) ---
+tiktoken>=0.7.0            # BPE token counter (cl100k_base)
+
+# --- Embeddings (optional at install time, lazily imported) ---
+# sentence-transformers>=3.0.0  # BGE-M3 local — install separately (large download)
+
+# --- Vector store ---
+chromadb>=0.5.0            # local vector store (dev/test)
+# pgvector                 # prod — installed with PostgreSQL extras
+
+# --- Object storage ---
+boto3>=1.35.0              # S3-compatible (Supabase Storage / Cloudflare R2)
+
+# --- Testing ---
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+pytest-httpx>=0.33.0
+pytest-cov>=5.0.0          # coverage reporting
+respx>=0.21.0              # httpx mock for URL-fetcher tests (Phase-1)
+
+# ============================================================
+# B5: Voice — FREE local female TTS + local STT (all lazily imported;
+# the server boots without them, falling back to Edge → silent)
+# ============================================================
+# CPU torch first (much smaller than CUDA builds):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+numpy>=1.26
+soundfile>=0.12
+pocket-tts>=4.0              # Tamil female "Geetha" (prasadvittaldev/pocket-tts-tamil-female-audiobook, MIT)
+kokoro-onnx>=0.4             # Kokoro-82M English female (af_heart); bundles espeak-ng (espeakng-loader)
+edge-tts>=7.0                # free online fallback (ta-IN-PallaviNeural / en-IN-NeerjaNeural)
+faster-whisper>=1.1          # local STT (large-v3-turbo on CUDA, small on CPU)
+# Optional GPU STT on Windows (ctranslate2 needs CUDA 12 cuBLAS + cuDNN 9 DLLs):
+#   pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
+# Optional expressive Tamil (gated, heavy): pip install git+https://github.com/huggingface/parler-tts.git
+# ffmpeg on PATH is recommended (MP3 output, speed control for Pocket TTS, Edge decode).
+
+# --- Course builder: YouTube ingestion (mcp-video-analyzer via npx also needs Node 22+) ---
+yt-dlp>=2025.1.1

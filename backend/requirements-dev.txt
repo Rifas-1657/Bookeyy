@@ -1,0 +1,6 @@
+# Dev/test-only extras (not needed in production images).
+# Install: pip install -r requirements-dev.txt
+-r requirements.txt
+
+# Local PostgreSQL 16 + pgvector without Docker (scripts/dev_postgres.py)
+pgserver>=0.1.4

@@ -1,0 +1,745 @@
+{
+ "pageId": "lesson_python_2_1",
+ "mime": "audio/mpeg",
+ "durationMs": 71630,
+ "wordTimings": [
+  {
+   "word": "Ippo",
+   "startMs": 40,
+   "endMs": 377,
+   "wordIndex": 0
+  },
+  {
+   "word": "numbers",
+   "startMs": 377,
+   "endMs": 940,
+   "wordIndex": 1
+  },
+  {
+   "word": "pathi",
+   "startMs": 940,
+   "endMs": 1277,
+   "wordIndex": 2
+  },
+  {
+   "word": "detail-a",
+   "startMs": 1277,
+   "endMs": 1727,
+   "wordIndex": 3
+  },
+  {
+   "word": "paarkalaam.",
+   "startMs": 1727,
+   "endMs": 2570,
+   "wordIndex": 4
+  },
+  {
+   "word": "Python-la",
+   "startMs": 2960,
+   "endMs": 3551,
+   "wordIndex": 5
+  },
+  {
+   "word": "rendu",
+   "startMs": 3551,
+   "endMs": 3994,
+   "wordIndex": 6
+  },
+  {
+   "word": "main",
+   "startMs": 3994,
+   "endMs": 4437,
+   "wordIndex": 7
+  },
+  {
+   "word": "number",
+   "startMs": 4437,
+   "endMs": 5028,
+   "wordIndex": 8
+  },
+  {
+   "word": "types",
+   "startMs": 5028,
+   "endMs": 5472,
+   "wordIndex": 9
+  },
+  {
+   "word": "irukku,",
+   "startMs": 5472,
+   "endMs": 6181,
+   "wordIndex": 10
+  },
+  {
+   "word": "int",
+   "startMs": 6181,
+   "endMs": 6624,
+   "wordIndex": 11
+  },
+  {
+   "word": "and",
+   "startMs": 6624,
+   "endMs": 7067,
+   "wordIndex": 12
+  },
+  {
+   "word": "float.",
+   "startMs": 7067,
+   "endMs": 7880,
+   "wordIndex": 13
+  },
+  {
+   "word": "int",
+   "startMs": 8270,
+   "endMs": 8739,
+   "wordIndex": 14
+  },
+  {
+   "word": "na",
+   "startMs": 8739,
+   "endMs": 8895,
+   "wordIndex": 15
+  },
+  {
+   "word": "whole",
+   "startMs": 8895,
+   "endMs": 9208,
+   "wordIndex": 16
+  },
+  {
+   "word": "number,",
+   "startMs": 9208,
+   "endMs": 9958,
+   "wordIndex": 17
+  },
+  {
+   "word": "7",
+   "startMs": 9958,
+   "endMs": 10427,
+   "wordIndex": 18
+  },
+  {
+   "word": "maari.",
+   "startMs": 10427,
+   "endMs": 11130,
+   "wordIndex": 19
+  },
+  {
+   "word": "float",
+   "startMs": 11520,
+   "endMs": 12065,
+   "wordIndex": 20
+  },
+  {
+   "word": "na",
+   "startMs": 12065,
+   "endMs": 12201,
+   "wordIndex": 21
+  },
+  {
+   "word": "decimal",
+   "startMs": 12201,
+   "endMs": 12746,
+   "wordIndex": 22
+  },
+  {
+   "word": "point",
+   "startMs": 12746,
+   "endMs": 13291,
+   "wordIndex": 23
+  },
+  {
+   "word": "irukkura",
+   "startMs": 13291,
+   "endMs": 13972,
+   "wordIndex": 24
+  },
+  {
+   "word": "number,",
+   "startMs": 13972,
+   "endMs": 14626,
+   "wordIndex": 25
+  },
+  {
+   "word": "12.5",
+   "startMs": 14626,
+   "endMs": 16397,
+   "wordIndex": 26
+  },
+  {
+   "word": "maari.",
+   "startMs": 16397,
+   "endMs": 17010,
+   "wordIndex": 27
+  },
+  {
+   "word": "Ivangala",
+   "startMs": 17400,
+   "endMs": 18011,
+   "wordIndex": 28
+  },
+  {
+   "word": "vachu",
+   "startMs": 18011,
+   "endMs": 18377,
+   "wordIndex": 29
+  },
+  {
+   "word": "calculator",
+   "startMs": 18377,
+   "endMs": 19233,
+   "wordIndex": 30
+  },
+  {
+   "word": "maari",
+   "startMs": 19233,
+   "endMs": 19599,
+   "wordIndex": 31
+  },
+  {
+   "word": "math",
+   "startMs": 19599,
+   "endMs": 19966,
+   "wordIndex": 32
+  },
+  {
+   "word": "pannalaam.",
+   "startMs": 19966,
+   "endMs": 20760,
+   "wordIndex": 33
+  },
+  {
+   "word": "Plus,",
+   "startMs": 21150,
+   "endMs": 21509,
+   "wordIndex": 34
+  },
+  {
+   "word": "minus,",
+   "startMs": 21509,
+   "endMs": 21942,
+   "wordIndex": 35
+  },
+  {
+   "word": "star",
+   "startMs": 21942,
+   "endMs": 22241,
+   "wordIndex": 36
+  },
+  {
+   "word": "for",
+   "startMs": 22241,
+   "endMs": 22465,
+   "wordIndex": 37
+  },
+  {
+   "word": "multiply,",
+   "startMs": 22465,
+   "endMs": 23122,
+   "wordIndex": 38
+  },
+  {
+   "word": "slash",
+   "startMs": 23122,
+   "endMs": 23496,
+   "wordIndex": 39
+  },
+  {
+   "word": "for",
+   "startMs": 23496,
+   "endMs": 23720,
+   "wordIndex": 40
+  },
+  {
+   "word": "divide.",
+   "startMs": 23720,
+   "endMs": 24280,
+   "wordIndex": 41
+  },
+  {
+   "word": "apples",
+   "startMs": 24670,
+   "endMs": 25255,
+   "wordIndex": 42
+  },
+  {
+   "word": "=",
+   "startMs": 25255,
+   "endMs": 25840,
+   "wordIndex": 43
+  },
+  {
+   "word": "7",
+   "startMs": 25840,
+   "endMs": 26191,
+   "wordIndex": 44
+  },
+  {
+   "word": "and",
+   "startMs": 26191,
+   "endMs": 26542,
+   "wordIndex": 45
+  },
+  {
+   "word": "price",
+   "startMs": 26542,
+   "endMs": 26893,
+   "wordIndex": 46
+  },
+  {
+   "word": "=",
+   "startMs": 26893,
+   "endMs": 27478,
+   "wordIndex": 47
+  },
+  {
+   "word": "12.5",
+   "startMs": 27478,
+   "endMs": 28999,
+   "wordIndex": 48
+  },
+  {
+   "word": "nu",
+   "startMs": 28999,
+   "endMs": 29116,
+   "wordIndex": 49
+  },
+  {
+   "word": "vechukonga.",
+   "startMs": 29116,
+   "endMs": 30110,
+   "wordIndex": 50
+  },
+  {
+   "word": "apples",
+   "startMs": 30500,
+   "endMs": 31126,
+   "wordIndex": 51
+  },
+  {
+   "word": "*",
+   "startMs": 31126,
+   "endMs": 31126,
+   "wordIndex": 52
+  },
+  {
+   "word": "price",
+   "startMs": 31126,
+   "endMs": 31502,
+   "wordIndex": 53
+  },
+  {
+   "word": "na",
+   "startMs": 31502,
+   "endMs": 31627,
+   "wordIndex": 54
+  },
+  {
+   "word": "87.5",
+   "startMs": 31627,
+   "endMs": 33756,
+   "wordIndex": 55
+  },
+  {
+   "word": "varum.",
+   "startMs": 33756,
+   "endMs": 34320,
+   "wordIndex": 56
+  },
+  {
+   "word": "Oru",
+   "startMs": 34710,
+   "endMs": 34958,
+   "wordIndex": 57
+  },
+  {
+   "word": "int-um",
+   "startMs": 34958,
+   "endMs": 35453,
+   "wordIndex": 58
+  },
+  {
+   "word": "float-um",
+   "startMs": 35453,
+   "endMs": 36073,
+   "wordIndex": 59
+  },
+  {
+   "word": "sernthaal",
+   "startMs": 36073,
+   "endMs": 36692,
+   "wordIndex": 60
+  },
+  {
+   "word": "result",
+   "startMs": 36692,
+   "endMs": 37188,
+   "wordIndex": 61
+  },
+  {
+   "word": "eppovume",
+   "startMs": 37188,
+   "endMs": 37807,
+   "wordIndex": 62
+  },
+  {
+   "word": "float",
+   "startMs": 37807,
+   "endMs": 38303,
+   "wordIndex": 63
+  },
+  {
+   "word": "aagum.",
+   "startMs": 38303,
+   "endMs": 38860,
+   "wordIndex": 64
+  },
+  {
+   "word": "Rendu",
+   "startMs": 39250,
+   "endMs": 39534,
+   "wordIndex": 65
+  },
+  {
+   "word": "special",
+   "startMs": 39534,
+   "endMs": 39912,
+   "wordIndex": 66
+  },
+  {
+   "word": "operators",
+   "startMs": 39912,
+   "endMs": 40670,
+   "wordIndex": 67
+  },
+  {
+   "word": "irukku.",
+   "startMs": 40670,
+   "endMs": 41190,
+   "wordIndex": 68
+  },
+  {
+   "word": "Double",
+   "startMs": 41580,
+   "endMs": 42191,
+   "wordIndex": 69
+  },
+  {
+   "word": "slash,",
+   "startMs": 42191,
+   "endMs": 42965,
+   "wordIndex": 70
+  },
+  {
+   "word": "adhu",
+   "startMs": 42965,
+   "endMs": 43373,
+   "wordIndex": 71
+  },
+  {
+   "word": "integer",
+   "startMs": 43373,
+   "endMs": 44391,
+   "wordIndex": 72
+  },
+  {
+   "word": "division,",
+   "startMs": 44391,
+   "endMs": 45369,
+   "wordIndex": 73
+  },
+  {
+   "word": "7",
+   "startMs": 45369,
+   "endMs": 45980,
+   "wordIndex": 74
+  },
+  {
+   "word": "//",
+   "startMs": 45980,
+   "endMs": 47610,
+   "wordIndex": 75
+  },
+  {
+   "word": "2",
+   "startMs": 47610,
+   "endMs": 47813,
+   "wordIndex": 76
+  },
+  {
+   "word": "na",
+   "startMs": 47813,
+   "endMs": 48017,
+   "wordIndex": 77
+  },
+  {
+   "word": "3.",
+   "startMs": 48017,
+   "endMs": 48730,
+   "wordIndex": 78
+  },
+  {
+   "word": "Percent",
+   "startMs": 49120,
+   "endMs": 49639,
+   "wordIndex": 79
+  },
+  {
+   "word": "sign",
+   "startMs": 49639,
+   "endMs": 49936,
+   "wordIndex": 80
+  },
+  {
+   "word": "remainder",
+   "startMs": 49936,
+   "endMs": 50604,
+   "wordIndex": 81
+  },
+  {
+   "word": "tharum,",
+   "startMs": 50604,
+   "endMs": 51109,
+   "wordIndex": 82
+  },
+  {
+   "word": "7",
+   "startMs": 51109,
+   "endMs": 51480,
+   "wordIndex": 83
+  },
+  {
+   "word": "%",
+   "startMs": 51480,
+   "endMs": 51925,
+   "wordIndex": 84
+  },
+  {
+   "word": "2",
+   "startMs": 51925,
+   "endMs": 52148,
+   "wordIndex": 85
+  },
+  {
+   "word": "na",
+   "startMs": 52148,
+   "endMs": 52296,
+   "wordIndex": 86
+  },
+  {
+   "word": "1.",
+   "startMs": 52296,
+   "endMs": 52630,
+   "wordIndex": 87
+  },
+  {
+   "word": "Double",
+   "startMs": 53020,
+   "endMs": 53429,
+   "wordIndex": 88
+  },
+  {
+   "word": "star",
+   "startMs": 53429,
+   "endMs": 53701,
+   "wordIndex": 89
+  },
+  {
+   "word": "power,",
+   "startMs": 53701,
+   "endMs": 54096,
+   "wordIndex": 90
+  },
+  {
+   "word": "2",
+   "startMs": 54096,
+   "endMs": 54300,
+   "wordIndex": 91
+  },
+  {
+   "word": "**",
+   "startMs": 54300,
+   "endMs": 54300,
+   "wordIndex": 92
+  },
+  {
+   "word": "3",
+   "startMs": 54300,
+   "endMs": 54641,
+   "wordIndex": 93
+  },
+  {
+   "word": "na",
+   "startMs": 54641,
+   "endMs": 54777,
+   "wordIndex": 94
+  },
+  {
+   "word": "8.",
+   "startMs": 54777,
+   "endMs": 55220,
+   "wordIndex": 95
+  },
+  {
+   "word": "Idhellaam",
+   "startMs": 55610,
+   "endMs": 56280,
+   "wordIndex": 96
+  },
+  {
+   "word": "operators",
+   "startMs": 56280,
+   "endMs": 57352,
+   "wordIndex": 97
+  },
+  {
+   "word": "chapter-la",
+   "startMs": 57352,
+   "endMs": 58023,
+   "wordIndex": 98
+  },
+  {
+   "word": "detail-a",
+   "startMs": 58023,
+   "endMs": 58559,
+   "wordIndex": 99
+  },
+  {
+   "word": "paarpom.",
+   "startMs": 58559,
+   "endMs": 59430,
+   "wordIndex": 100
+  },
+  {
+   "word": "Ippo",
+   "startMs": 59820,
+   "endMs": 60205,
+   "wordIndex": 101
+  },
+  {
+   "word": "mukkiyam,",
+   "startMs": 60205,
+   "endMs": 60950,
+   "wordIndex": 102
+  },
+  {
+   "word": "number-a",
+   "startMs": 60950,
+   "endMs": 61463,
+   "wordIndex": 103
+  },
+  {
+   "word": "type-a",
+   "startMs": 61463,
+   "endMs": 61720,
+   "wordIndex": 104
+  },
+  {
+   "word": "purinjikkanum.",
+   "startMs": 61720,
+   "endMs": 62940,
+   "wordIndex": 105
+  },
+  {
+   "word": "Code-a",
+   "startMs": 63330,
+   "endMs": 63562,
+   "wordIndex": 106
+  },
+  {
+   "word": "run",
+   "startMs": 63562,
+   "endMs": 63794,
+   "wordIndex": 107
+  },
+  {
+   "word": "pannitu",
+   "startMs": 63794,
+   "endMs": 64374,
+   "wordIndex": 108
+  },
+  {
+   "word": "87.5",
+   "startMs": 64374,
+   "endMs": 66345,
+   "wordIndex": 109
+  },
+  {
+   "word": "and",
+   "startMs": 66345,
+   "endMs": 66693,
+   "wordIndex": 110
+  },
+  {
+   "word": "3",
+   "startMs": 66693,
+   "endMs": 66925,
+   "wordIndex": 111
+  },
+  {
+   "word": "1",
+   "startMs": 66925,
+   "endMs": 67157,
+   "wordIndex": 112
+  },
+  {
+   "word": "8",
+   "startMs": 67157,
+   "endMs": 67505,
+   "wordIndex": 113
+  },
+  {
+   "word": "varudhanu",
+   "startMs": 67505,
+   "endMs": 68084,
+   "wordIndex": 114
+  },
+  {
+   "word": "check",
+   "startMs": 68084,
+   "endMs": 68316,
+   "wordIndex": 115
+  },
+  {
+   "word": "pannunga.",
+   "startMs": 68316,
+   "endMs": 69070,
+   "wordIndex": 116
+  },
+  {
+   "word": "Neengalae",
+   "startMs": 69460,
+   "endMs": 69846,
+   "wordIndex": 117
+  },
+  {
+   "word": "vera",
+   "startMs": 69846,
+   "endMs": 70039,
+   "wordIndex": 118
+  },
+  {
+   "word": "numbers",
+   "startMs": 70039,
+   "endMs": 70521,
+   "wordIndex": 119
+  },
+  {
+   "word": "vachu",
+   "startMs": 70521,
+   "endMs": 70810,
+   "wordIndex": 120
+  },
+  {
+   "word": "try",
+   "startMs": 70810,
+   "endMs": 71003,
+   "wordIndex": 121
+  },
+  {
+   "word": "pannunga.",
+   "startMs": 71003,
+   "endMs": 71630,
+   "wordIndex": 122
+  }
+ ]
+}

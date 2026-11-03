@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "notes": "Bookey voice evaluation set. 'tts' items are narration lines (judged by listening); 'stt' items are learner questions (scored by WER against the Latin-script reference). Tanglish is written in Latin letters exactly as the learner sees it.",
+  "tts": [
+    {"id": "t01", "lang": "tanglish", "text": "Vanakkam! Innaiku namma Python variables pathi kathukkaporom."},
+    {"id": "t02", "lang": "tanglish", "text": "React-la useState hook use pannumbodhu, state update aana component re-render aagum."},
+    {"id": "t03", "lang": "tanglish", "text": "Oru function-ku input kudutha, adhu oru output return pannum. Simple-a sollanumna, idhu oru machine maadhiri."},
+    {"id": "t04", "lang": "tanglish", "text": "Indha loop moonu thadava run aagum, ovvoru thadavaiyum i value onnu onna increase aagum."},
+    {"id": "t05", "lang": "tanglish", "text": "Database-la SQL JOIN use panna, rendu tables-la irukkura matching rows-a onna serkkalaam."},
+    {"id": "t06", "lang": "tanglish", "text": "Machine learning model training data-la irundhu patterns learn pannum, appuram pudhu input-ku prediction kudukkum."},
+    {"id": "t07", "lang": "tanglish", "text": "Super! Neenga correct-a pannitinga. Ippo konjam kashtamaana example paarkalaam."},
+    {"id": "t08", "lang": "tanglish", "text": "Error vandha bayappadaadheenga. Traceback-a keezha irundhu mela padinga, mistake enga nu theriyum."},
+    {"id": "t09", "lang": "tanglish", "text": "API call panna, server oru JSON response anuppum. Adha namma parse panni screen-la kaattuvom."},
+    {"id": "t10", "lang": "tanglish", "text": "Recursion na, oru function thannaiye thirumba call panradhu. Base case illana, adhu mudiyave mudiyaadhu."},
+    {"id": "t11", "lang": "tanglish", "text": "Git commit pannadhukku munnaadi, git status paathu enna files maarirukku nu check pannunga."},
+    {"id": "t12", "lang": "tanglish", "text": "List mutable, tuple immutable. Adhaavadhu tuple-a create panna apram maatha mudiyaadhu."},
+    {"id": "t13", "lang": "tanglish", "text": "Indha diagram-la paarunga: browser request anuppudhu, server process pannudhu, response thirumba varudhu."},
+    {"id": "t14", "lang": "tanglish", "text": "Neural network-la ovvoru layer-um konjam konjama features-a extract pannum."},
+    {"id": "t15", "lang": "tanglish", "text": "Ippo neengale try pannunga. Code-la x value-a 25 nu maathi, Run button-a press pannunga."},
+    {"id": "e01", "lang": "english", "text": "Welcome back! Today we will learn how variables store values in Python."},
+    {"id": "e02", "lang": "english", "text": "A dictionary maps each key to a value, so lookups stay fast even when the data grows."},
+    {"id": "e03", "lang": "english", "text": "Great work. Now let's run the code and see what the print statement shows."},
+    {"id": "e04", "lang": "english", "text": "Gradient descent nudges every weight a little in the direction that reduces the loss."},
+    {"id": "e05", "lang": "english", "text": "If the request fails, the server returns a 404 status code instead of the page."}
+  ],
+  "stt": [
+    {"id": "q01", "lang": "tanglish", "text": "List-ku tuple-ku enna difference?"},
+    {"id": "q02", "lang": "tanglish", "text": "Indha code-la error yen varudhu?"},
+    {"id": "q03", "lang": "tanglish", "text": "For loop-um while loop-um eppo use pannanum?"},
+    {"id": "q04", "lang": "tanglish", "text": "Function-la return illana enna aagum?"},
+    {"id": "q05", "lang": "tanglish", "text": "Recursion-a simple-a oru example-oda sollunga."},
+    {"id": "q06", "lang": "tanglish", "text": "API-na enna, adhu eppadi work aagudhu?"},
+    {"id": "q07", "lang": "tanglish", "text": "Dictionary-la key irukka illaiya nu eppadi check panradhu?"},
+    {"id": "q08", "lang": "tanglish", "text": "Konjam slow-a thirumba sollunga please."},
+    {"id": "q09", "lang": "tanglish", "text": "Machine learning-ku maths romba theriyanuma?"},
+    {"id": "q10", "lang": "tanglish", "text": "Indha diagram-la arrow enna mean pannudhu?"},
+    {"id": "q11", "lang": "english", "text": "Can you explain what a variable is again?"},
+    {"id": "q12", "lang": "english", "text": "Why does my program print None?"}
+  ]
+}

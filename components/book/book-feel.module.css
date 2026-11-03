@@ -1,0 +1,362 @@
+/*
+ * Premium book feel: paper grain, 3D page turn, ink-in word reveal and the
+ * tutor presence orb. Colours come only from the semantic/book tokens.
+ * Every animation has a prefers-reduced-motion fallback.
+ */
+
+/* ------------------------------ paper ------------------------------ */
+
+.paper {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--book-page);
+  background-image:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--book-paper) 70%, transparent), transparent 70%),
+    radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--book-ink) 4%, transparent) 1px, transparent 0);
+  background-size:
+    100% 100%,
+    5px 5px;
+}
+
+/* Fibre grain (SVG turbulence) tinted by the ink token through a mask. */
+.paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: color-mix(in oklab, var(--book-ink) 7%, transparent);
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mask-size: 160px 160px;
+  opacity: 0.55;
+}
+
+/* Inner edge shading toward the spine. */
+.pageLeft {
+  box-shadow:
+    inset -18px 0 28px -22px color-mix(in oklab, var(--book-ink) 35%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--book-page) 80%, transparent);
+}
+.pageRight {
+  box-shadow:
+    inset 18px 0 28px -22px color-mix(in oklab, var(--book-ink) 35%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--book-page) 80%, transparent);
+}
+
+/* Stacked page edges under the spread. */
+.spread {
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--book-paper) 90%, transparent),
+    0 3px 0 -1px color-mix(in oklab, var(--book-amber) 18%, var(--book-paper)),
+    0 6px 0 -2px color-mix(in oklab, var(--book-amber) 24%, var(--book-paper)),
+    0 40px 110px -30px rgb(0 0 0 / 0.7),
+    0 0 0 1px rgb(255 255 255 / 0.06);
+}
+
+/* ---------------------------- page turn ---------------------------- */
+
+.turnLayer {
+  position: absolute;
+  inset: 0.5rem;
+  pointer-events: none;
+  perspective: 2400px;
+  z-index: 30;
+}
+@media (min-width: 1024px) {
+  .turnLayer {
+    inset: 0.75rem;
+  }
+}
+
+.leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  border-radius: 1.25rem;
+  transform-style: preserve-3d;
+  background-color: var(--book-page);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--book-ink) 10%, transparent),
+    transparent 18%,
+    transparent 82%,
+    color-mix(in oklab, var(--book-ink) 14%, transparent)
+  );
+  box-shadow: 0 18px 50px -20px rgb(0 0 0 / 0.55);
+  will-change: transform;
+}
+@media (min-width: 1024px) {
+  .leaf {
+    width: 50%;
+  }
+}
+
+/* Curl highlight sweeping across the leaf. */
+.leaf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklab, var(--book-page) 70%, transparent) 48%,
+    color-mix(in oklab, var(--book-ink) 22%, transparent) 62%,
+    transparent 80%
+  );
+  opacity: 0;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.25rem;
+  background: radial-gradient(60% 100% at 50% 50%, color-mix(in oklab, var(--book-ink) 30%, transparent), transparent 70%);
+  opacity: 0;
+}
+
+.turnLayer[data-direction='next'] .leaf {
+  right: 0;
+  transform-origin: left center;
+  animation: turnNext 760ms cubic-bezier(0.45, 0.05, 0.2, 1) forwards;
+}
+@media (min-width: 1024px) {
+  .turnLayer[data-direction='next'] .leaf {
+    left: 50%;
+    right: auto;
+  }
+}
+.turnLayer[data-direction='prev'] .leaf {
+  left: 0;
+  transform-origin: right center;
+  animation: turnPrev 760ms cubic-bezier(0.45, 0.05, 0.2, 1) forwards;
+}
+.turnLayer .leaf::after {
+  animation: curl 760ms ease-in-out forwards;
+}
+.turnLayer .shade {
+  animation: shade 760ms ease-in-out forwards;
+}
+
+@keyframes turnNext {
+  0% {
+    transform: rotateY(0deg) skewY(0deg);
+  }
+  45% {
+    transform: rotateY(-70deg) skewY(-2deg) translateZ(30px);
+  }
+  100% {
+    transform: rotateY(-180deg) skewY(0deg);
+    opacity: 0.2;
+  }
+}
+@keyframes turnPrev {
+  0% {
+    transform: rotateY(0deg);
+  }
+  45% {
+    transform: rotateY(70deg) skewY(2deg) translateZ(30px);
+  }
+  100% {
+    transform: rotateY(180deg);
+    opacity: 0.2;
+  }
+}
+@keyframes curl {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes shade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.6;
+  }
+}
+
+/* ---------------------------- ink-in words ---------------------------- */
+
+.word {
+  transition:
+    opacity 260ms ease,
+    color 260ms ease;
+}
+.wordFuture {
+  opacity: 0;
+}
+.wordSpoken {
+  animation: inkIn 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.wordActive {
+  border-radius: 0.2em;
+  background: color-mix(in oklab, var(--book-marker) 55%, transparent);
+  box-decoration-break: clone;
+  padding-inline: 0.12em;
+  margin-inline: -0.12em;
+  color: var(--book-ink);
+}
+@keyframes inkIn {
+  0% {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(0.18em);
+    color: var(--book-orange);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------ tutor orb ------------------------------ */
+
+.orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.orbCore {
+  position: absolute;
+  inset: 14%;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--book-page) 85%, transparent), transparent 42%),
+    radial-gradient(circle at 60% 70%, var(--book-deep), transparent 70%),
+    radial-gradient(circle at 50% 50%, var(--book-orange), var(--book-amber));
+  box-shadow:
+    0 0 24px -2px color-mix(in oklab, var(--book-orange) 70%, transparent),
+    inset 0 -6px 14px color-mix(in oklab, var(--book-deep) 60%, transparent);
+  transform: scale(var(--orb-level-scale, 1));
+  transition: transform 90ms linear;
+}
+.orbHalo {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--book-orange) 40%, transparent), transparent 68%);
+  opacity: var(--orb-halo, 0.4);
+  transform: scale(calc(0.9 + var(--orb-level, 0) * 0.5));
+  transition:
+    transform 110ms linear,
+    opacity 200ms ease;
+}
+.orbRing {
+  position: absolute;
+  inset: 4%;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in oklab, var(--book-marker) 70%, transparent);
+  opacity: 0;
+}
+.orbFace {
+  position: relative;
+  width: 46%;
+  height: 46%;
+  color: color-mix(in oklab, var(--book-ink) 85%, transparent);
+}
+
+.orb[data-state='idle'] .orbCore {
+  animation: breathe 4.2s ease-in-out infinite;
+}
+.orb[data-state='listening'] .orbRing {
+  animation: ripple 1.6s ease-out infinite;
+}
+.orb[data-state='listening'] .orbRing:nth-child(2) {
+  animation-delay: 0.8s;
+}
+.orb[data-state='listening'] .orbCore {
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--book-page) 85%, transparent), transparent 42%),
+    radial-gradient(circle at 50% 50%, var(--book-marker), var(--book-orange));
+}
+.orb[data-state='thinking'] .orbHalo {
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    color-mix(in oklab, var(--book-marker) 70%, transparent),
+    transparent 40%,
+    color-mix(in oklab, var(--book-orange) 60%, transparent),
+    transparent 80%
+  );
+  opacity: 0.8;
+  animation: spin 1.8s linear infinite;
+  mask: radial-gradient(circle, transparent 52%, #000 54%, #000 70%, transparent 72%);
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+@keyframes ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------ margin note ------------------------------ */
+
+.marginNote {
+  background-color: color-mix(in oklab, var(--book-marker) 14%, var(--book-page));
+  background-image: repeating-linear-gradient(
+    transparent 0 1.55em,
+    color-mix(in oklab, var(--book-amber) 22%, transparent) 1.55em calc(1.55em + 1px)
+  );
+  box-shadow:
+    0 18px 40px -22px rgb(0 0 0 / 0.55),
+    0 0 0 1px color-mix(in oklab, var(--book-amber) 35%, transparent);
+}
+
+.polaroid {
+  background: var(--book-page);
+  padding: 0.5rem 0.5rem 1.6rem;
+  box-shadow: 0 14px 30px -18px rgb(0 0 0 / 0.6);
+  border-radius: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turnLayer {
+    display: none;
+  }
+  .wordSpoken,
+  .orb .orbCore,
+  .orb .orbRing,
+  .orb .orbHalo {
+    animation: none !important;
+  }
+  .wordFuture {
+    opacity: 0.35;
+  }
+  .orbCore,
+  .orbHalo {
+    transition: none;
+  }
+}

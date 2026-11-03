@@ -1,0 +1,258 @@
+"""
+tests/conftest.py — pytest fixtures (B1).
+
+Strategy:
+  - session-scoped sync TestClient runs app lifespan ONCE → creates bookey_dev.db
+    with all B1 tables + seed data (admin + bootstrap invite).
+  - All user/token fixtures are pytest_asyncio session-scoped; they read from
+    AsyncSessionLocal (the real app DB) and share one event loop per session
+    (asyncio_default_fixture_loop_scope = session in pytest.ini).
+  - All http_client fixtures depend on app_client to guarantee lifespan ran first.
+  - WS tests use the same TestClient session fixture.
+"""
+from __future__ import annotations
+
+import io
+import os
+import sys
+
+# Force UTF-8 output on Windows (prevents UnicodeEncodeError from structlog/colorama
+# when structured log output contains non-ASCII characters like arrows or bullets).
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if sys.stderr.encoding and sys.stderr.encoding.lower() != "utf-8":
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+# Disable structlog colors in test mode to avoid colorama ANSI handling on Windows
+os.environ.setdefault("NO_COLOR", "1")
+
+# ---------------------------------------------------------------------------
+# Test database isolation:
+# Guarantee tests NEVER touch or modify the development database (bookey_dev.db).
+# Always create and configure an isolated temporary SQLite database for tests.
+# ---------------------------------------------------------------------------
+import atexit
+import shutil
+import tempfile
+from pathlib import Path
+
+os.environ["APP_ENV"] = "testing"
+os.environ.setdefault("BOOKEY_ADMIN_DEV_PASSWORD", "bookey-admin-dev")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-32chars-for-tests")
+# Rate limiting is exercised explicitly in tests/test_security_fixes.py (which flips
+# limiter.enabled); the rest of the suite fires many requests from one client.
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+
+# Durable job queue: tests drive queued work explicitly in their own event loop via
+# runner.wait(job_id) / app.jobs.worker.run_until_idle, so no background worker runs.
+os.environ["JOBS_INLINE_WORKER"] = "false"
+os.environ.setdefault("JOBS_BACKOFF_BASE_SECONDS", "0.05")
+os.environ.setdefault("JOBS_BACKOFF_MAX_SECONDS", "0.2")
+
+# Default: a fresh temporary SQLite database for every pytest run, so tests never touch
+# bookey_dev.db, staging, production, or any external database.
+#
+# PostgreSQL: TEST_DATABASE_URL=postgresql+asyncpg://postgres@127.0.0.1:<port>/bookey_test
+# (see scripts/dev_postgres.py). The database name must contain "test"; its `public`
+# schema is DROPPED and rebuilt with `alembic upgrade head` at the start of the run.
+_test_db_dir = tempfile.mkdtemp(prefix="bookey_test_")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "").strip()
+if TEST_DATABASE_URL:
+    _db_name = TEST_DATABASE_URL.rsplit("/", 1)[-1].split("?")[0]
+    if "test" not in _db_name or TEST_DATABASE_URL.startswith("sqlite"):
+        raise RuntimeError(f"TEST_DATABASE_URL must point at a PostgreSQL database named *test* (got {_db_name!r})")
+    os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+else:
+    _test_db_path = Path(_test_db_dir) / "bookey_test.db"
+    os.environ["DATABASE_URL"] = f"sqlite+aiosqlite:///{_test_db_path.as_posix()}"
+
+def _cleanup_test_db() -> None:
+    shutil.rmtree(_test_db_dir, ignore_errors=True)
+
+atexit.register(_cleanup_test_db)
+
+from app.config import get_settings
+get_settings.cache_clear()
+
+
+def _reset_postgres_and_migrate(url: str) -> None:
+    """Drop everything in the test database, then build the schema with Alembic
+    (the app never runs create_all on PostgreSQL)."""
+    import asyncio
+    import subprocess
+
+    async def _reset() -> None:
+        from sqlalchemy import text as _t
+        from sqlalchemy.ext.asyncio import create_async_engine
+        from sqlalchemy.pool import NullPool
+        eng = create_async_engine(url, poolclass=NullPool)
+        async with eng.begin() as conn:
+            await conn.execute(_t("DROP SCHEMA IF EXISTS public CASCADE"))
+            await conn.execute(_t("CREATE SCHEMA public"))
+        await eng.dispose()
+
+    asyncio.run(_reset())
+    backend = Path(__file__).resolve().parent.parent
+    subprocess.run([sys.executable, "-m", "alembic", "-x", f"url={url}", "upgrade", "head"],
+                   cwd=str(backend), check=True, capture_output=True)
+
+
+if TEST_DATABASE_URL:
+    _reset_postgres_and_migrate(TEST_DATABASE_URL)
+
+import pytest
+import pytest_asyncio
+from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
+
+from app.auth.service import create_access_token, hash_password
+from app.auth.ticket import issue_ticket
+from app.db.database import AsyncSessionLocal
+from app.db.models import User
+from app.main import app
+
+
+
+# ---------------------------------------------------------------------------
+# App bootstrap — runs lifespan ONCE per session
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def app_client():
+    """
+    Sync TestClient that runs the FastAPI lifespan on enter.
+    Creates bookey_dev.db with all tables + seeds admin user + invite.
+    All fixtures that touch the DB depend on this (directly or transitively).
+    """
+    with TestClient(app, raise_server_exceptions=False) as client:
+        yield client
+
+
+# ---------------------------------------------------------------------------
+# User fixtures — async session-scoped, shared event loop via pytest.ini setting
+# ---------------------------------------------------------------------------
+
+@pytest_asyncio.fixture(scope="session")
+async def admin_user(app_client) -> User:
+    """Fetch the seeded dev admin from the real app DB."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).where(User.email == "admin@bookey.dev")
+        )
+        return result.scalar_one()
+
+
+@pytest_asyncio.fixture(scope="session")
+async def learner_user(app_client, admin_user: User) -> User:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).where(User.email == "learner@bookey.test")
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            return existing
+        user = User(
+            email="learner@bookey.test",
+            display_name="Test Learner",
+            role="learner",
+            password_hash=hash_password("learner-test-pass"),
+        )
+        db.add(user)
+        await db.commit()
+        return user
+
+
+@pytest_asyncio.fixture(scope="session")
+async def learner2_user(app_client, admin_user: User) -> User:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            select(User).where(User.email == "learner2@bookey.test")
+        )
+        existing = result.scalar_one_or_none()
+        if existing:
+            return existing
+        user = User(
+            email="learner2@bookey.test",
+            display_name="Learner Two",
+            role="learner",
+            password_hash=hash_password("learner2-test-pass"),
+        )
+        db.add(user)
+        await db.commit()
+        return user
+
+
+# ---------------------------------------------------------------------------
+# Token fixtures (sync — just call create_access_token)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def admin_token(admin_user: User) -> str:
+    return create_access_token(admin_user.id, admin_user.role)
+
+
+@pytest.fixture(scope="session")
+def learner_token(learner_user: User) -> str:
+    return create_access_token(learner_user.id, learner_user.role)
+
+
+@pytest.fixture(scope="session")
+def learner2_token(learner2_user: User) -> str:
+    return create_access_token(learner2_user.id, learner2_user.role)
+
+
+# ---------------------------------------------------------------------------
+# WS client (module-scoped — reuses app_client so lifespan is already done)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def ws_client(app_client):
+    return app_client
+
+
+# ---------------------------------------------------------------------------
+# Async HTTP clients (function-scoped)
+# All depend on app_client to ensure DB is set up before first request.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def voice_user_override():
+    """Authenticate /api/voice/* calls made by unauthenticated test clients."""
+    from types import SimpleNamespace
+    from app.auth.dependencies import get_current_user
+
+    user = SimpleNamespace(id="voice-test-user", role="learner", is_active=True, token_version=0)
+    app.dependency_overrides[get_current_user] = lambda: user
+    try:
+        yield user
+    finally:
+        app.dependency_overrides.pop(get_current_user, None)
+
+
+@pytest_asyncio.fixture
+async def http_client(app_client):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+
+@pytest_asyncio.fixture
+async def auth_http_client(app_client, learner_token: str):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {learner_token}"},
+    ) as client:
+        yield client
+
+
+@pytest_asyncio.fixture
+async def admin_http_client(app_client, admin_token: str):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport,
+        base_url="http://test",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    ) as client:
+        yield client
