@@ -12,7 +12,7 @@ import hashlib
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Literal, Optional
+from typing import Optional
 
 import jwt
 from argon2 import PasswordHasher
@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from sqlalchemy import update
 
-from app.db.models import Invite, PasswordResetToken, User, utcnow
+from app.db.models import PasswordResetToken, User, utcnow
 
 log = logging.getLogger(__name__)
 settings = get_settings()
@@ -37,7 +37,6 @@ _ph = PasswordHasher(
     salt_len=16,
 )
 
-MAX_LEARNER_SEATS = 4  # hard platform limit
 
 
 # ---------------------------------------------------------------------------
@@ -114,96 +113,10 @@ async def bump_token_version(db: AsyncSession, user_id: str) -> None:
 # Seat-limit enforcement
 # ---------------------------------------------------------------------------
 
-async def count_learner_seats(db: AsyncSession) -> int:
-    result = await db.execute(
-        select(func.count()).where(User.role == "learner", User.is_active == True)
-    )
-    return result.scalar_one()
-
-
-async def count_admin_seats(db: AsyncSession) -> int:
-    result = await db.execute(
-        select(func.count()).where(User.role == "admin", User.is_active == True)
-    )
-    return result.scalar_one()
-
-
-async def can_add_learner(db: AsyncSession) -> bool:
-    count = await count_learner_seats(db)
-    return count < MAX_LEARNER_SEATS
-
-
 # ---------------------------------------------------------------------------
-# Invite management
+# Password reset
 # ---------------------------------------------------------------------------
 
-InviteRole = Literal["admin", "learner"]
-
-
-async def create_invite(
-    db: AsyncSession,
-    created_by: str,
-    role: InviteRole = "learner",
-    invited_email: Optional[str] = None,
-    ttl_hours: int = 48,
-) -> str:
-    """Create an invite token. Returns the raw (unhashed) token."""
-    if role not in ("admin", "learner"):
-        raise ValueError(f"invalid invite role: {role!r}")
-    raw = secrets.token_urlsafe(32)
-    token_hash = _sha256(raw)
-    expires_at = utcnow() + timedelta(hours=ttl_hours)
-    invite = Invite(
-        token_hash=token_hash,
-        invited_email=invited_email.strip().lower() if invited_email else None,
-        role=role,
-        created_by=created_by,
-        expires_at=expires_at,
-    )
-    db.add(invite)
-    await db.commit()
-    log.info("Invite created by %s for role=%s email=%s", created_by, role, invited_email)
-    return raw
-
-
-async def consume_invite(db: AsyncSession, raw_token: str) -> Optional[Invite]:
-    """Look up a valid (unused, unexpired) invite. Does NOT consume it —
-    call claim_invite() inside the signup transaction to consume atomically."""
-    token_hash = _sha256(raw_token)
-    result = await db.execute(
-        select(Invite).where(
-            Invite.token_hash == token_hash,
-            Invite.used_at == None,  # noqa: E711
-            Invite.expires_at > utcnow(),
-        )
-    )
-    invite = result.scalar_one_or_none()
-    return invite
-
-
-def invite_email_matches(invite: Invite, email: str) -> bool:
-    if not invite.invited_email:
-        return True
-    return invite.invited_email.strip().lower() == (email or "").strip().lower()
-
-
-async def claim_invite(db: AsyncSession, invite_id: str, user_id: str) -> bool:
-    """Atomically mark the invite used. Returns False if another request won the race.
-    Does not commit — the caller commits together with the new user row."""
-    now = utcnow()
-    res = await db.execute(
-        update(Invite)
-        .where(Invite.id == invite_id, Invite.used_at == None, Invite.expires_at > now)  # noqa: E711
-        .values(used_at=now, used_by=user_id)
-        .execution_options(synchronize_session=False)
-    )
-    return (res.rowcount or 0) == 1
-
-
-async def mark_invite_used(db: AsyncSession, invite: Invite, user_id: str) -> None:
-    invite.used_by = user_id
-    invite.used_at = utcnow()
-    await db.commit()
 
 
 # ---------------------------------------------------------------------------

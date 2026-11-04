@@ -35,7 +35,7 @@ export function EditCoursePage({ courseId }: { courseId: string }) {
       <EmptyState
         icon={<BookX aria-hidden="true" />}
         title="Course not found"
-        description="This demo course doesn't exist in this browser. It may have been reset."
+        description="This course doesn't exist."
         action={
           <BookeyButton nativeButton={false} render={<Link href="/admin/courses" />}>
             Back to courses

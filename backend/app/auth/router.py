@@ -1,7 +1,7 @@
 """
 app/auth/router.py — Auth REST endpoints.
 
-POST /auth/signup    — sign up with invite token
+POST /auth/signup    — open learner signup
 POST /auth/login     — email + password → access + refresh cookies
 POST /auth/logout    — clear cookies
 POST /auth/refresh   — rotate refresh token → new access token
@@ -30,20 +30,13 @@ from app.auth import service
 from app.auth.dependencies import _resolve_token, get_current_user
 from app.auth.service import (
     bump_token_version,
-    can_add_learner,
-    claim_invite,
-    consume_invite,
-    invite_email_matches,
     token_version_matches,
     consume_password_reset_token,
-    count_admin_seats,
     create_access_token,
-    create_invite,
     create_password_reset_token,
     create_refresh_token,
     decode_token,
     hash_password,
-    mark_invite_used,
     mark_reset_token_used,
     needs_rehash,
     verify_password,
@@ -72,7 +65,6 @@ class SignupRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     display_name: str = Field(min_length=1, max_length=120)
-    invite_token: str
 
 
 class LoginRequest(BaseModel):
@@ -135,30 +127,7 @@ async def signup(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> AuthResponse:
-    # 1. Validate invite token
-    invite = await consume_invite(db, body.invite_token)
-    if invite is None or not invite_email_matches(invite, body.email):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid or expired invite token",
-        )
-
-    # 2. Check seat limit for learners
-    role = invite.role
-    if role == "learner":
-        if not await can_add_learner(db):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Platform seat limit reached (max {service.MAX_LEARNER_SEATS} learners)",
-            )
-    elif role == "admin":
-        if await count_admin_seats(db) >= 1:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Admin seat already taken",
-            )
-
-    # 3. Check email uniqueness
+    # 1. Check email uniqueness
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
         raise HTTPException(
@@ -166,27 +135,19 @@ async def signup(
             detail="Email already registered",
         )
 
-    # 4. Create user
+    # 2. Create user (open signup: always a learner; admins come from scripts/create_admin.py)
     user = User(
         email=body.email,
         display_name=body.display_name,
-        role=role,
+        role="learner",
         password_hash=hash_password(body.password),
     )
     db.add(user)
     await db.flush()  # get user.id
 
-    # 5. Consume the invite atomically (UPDATE ... WHERE used_at IS NULL); a
-    #    concurrent signup with the same token loses and its user row is rolled back.
-    if not await claim_invite(db, invite.id, user.id):
-        await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid or expired invite token",
-        )
     await db.commit()
 
-    # 6. Issue tokens
+    # 3. Issue tokens
     access_token = create_access_token(user.id, user.role, user.token_version or 0)
     refresh_token = create_refresh_token(user.id, user.token_version or 0)
     _set_auth_cookies(response, access_token, refresh_token)

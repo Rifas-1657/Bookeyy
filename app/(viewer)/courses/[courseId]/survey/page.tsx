@@ -35,7 +35,7 @@ export default async function CourseSurveyPage({ params }: SurveyPageProps) {
       <main className="mx-auto flex min-h-dvh max-w-3xl items-center px-4 py-10">
         <EmptyState
           icon={<Lock />}
-          title={`${course.title} is locked in this demo`}
+          title={`${course.title} is coming soon`}
           description="This book's pages aren't included in the preview, so there's nothing to personalize yet."
           action={
             <BookeyButton nativeButton={false} render={<Link href="/courses" />}>

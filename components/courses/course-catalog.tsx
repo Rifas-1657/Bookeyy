@@ -203,7 +203,7 @@ export function CourseCatalog({ courses: sourceCourses }: { courses: LearningCou
           icon={<Search />}
           title="No courses match"
           description={
-            deferredQuery ? `Nothing matched “${deferredQuery}” with the current filters.` : 'No demo course fits this combination of filters.'
+            deferredQuery ? `Nothing matched “${deferredQuery}” with the current filters.` : 'No course fits this combination of filters.'
           }
           action={
             <BookeyButton variant="outline" onClick={reset}>

@@ -24,7 +24,7 @@ export function DemoAnswersBadge() {
   return (
     <p className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 font-mono text-[10px] tracking-wide text-muted-foreground">
       <span aria-hidden="true" className="size-1.5 rounded-full bg-book-amber/70" />
-      Demo answers — no AI service connected
+      Answers from your tutor
     </p>
   )
 }
@@ -134,7 +134,7 @@ export function CourseChatPanel({ courseTitle, pageTitle, tutor, onOpenSource, o
             <div>
               <p className="font-display font-semibold text-balance">Ask anything about {courseTitle}</p>
               <p className="mx-auto mt-1 max-w-64 text-sm text-pretty text-muted-foreground">
-                {pageTitle ? `Questions are answered from the demo notes for “${pageTitle}”.` : 'Questions are answered from demo lesson notes.'}{' '}
+                {pageTitle ? `Questions are answered from “${pageTitle}”.` : 'Questions are answered from demo lesson notes.'}{' '}
                 History stays in this browser.
               </p>
             </div>
@@ -238,7 +238,7 @@ export function CourseChatPanel({ courseTitle, pageTitle, tutor, onOpenSource, o
             aria-label={
               recorder.isApiConfigured
                 ? 'Record question with microphone'
-                : 'Demo mic: fill in a sample question'
+                : 'Ask by voice'
             }
             className="grid size-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-foreground/80 transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-book-orange focus-visible:outline-none disabled:opacity-40"
           >

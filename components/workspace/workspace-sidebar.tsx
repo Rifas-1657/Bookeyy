@@ -26,14 +26,6 @@ export function WorkspaceSidebar({ collapsed }: { collapsed: boolean }) {
         <WorkspaceNavList collapsed={collapsed} />
       </nav>
 
-      {!collapsed && (
-        <div className="m-3 rounded-2xl border border-dashed border-border p-4">
-          <BookeyBadge tone="neutral">Demo workspace</BookeyBadge>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Courses, progress, and streaks here are sample data. Nothing is saved to an account.
-          </p>
-        </div>
-      )}
     </aside>
   )
 }

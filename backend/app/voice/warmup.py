@@ -31,7 +31,7 @@ import time
 from typing import List
 
 from app.config import get_settings
-from app.db.seed import PYTHON_PAGES
+from app.books.personal import load_book
 from app.voice.cache import (
     compute_voice_cache_key,
     get_voice_cache,
@@ -73,9 +73,8 @@ def get_course_sentences(course_id: str) -> List[dict]:
     segments = []
     seen = set()
 
-    for page in PYTHON_PAGES:
-        page_id = page["id"]
-        narration = page.get("narration_text", "")
+    for page_id, lesson in load_book().items():
+        narration = lesson["narration_tanglish"]
         if not narration:
             continue
 

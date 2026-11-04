@@ -43,7 +43,7 @@ export function AdminSidebar({ pathname, compact, showCompactToggle, onNavigate,
         {!compact && (
           <div className="min-w-0 flex-1">
             <p className="font-display text-lg leading-tight font-bold">Bookey</p>
-            <p className="text-xs text-muted-foreground">Demo admin console</p>
+            <p className="text-xs text-muted-foreground">Admin console</p>
           </div>
         )}
         {onClose && (

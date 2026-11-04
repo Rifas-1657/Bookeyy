@@ -69,10 +69,6 @@ export function TutorSettingsForm() {
           </>
         }
       />
-      <DemoNotice>
-        These are preview controls. Real text-to-speech and model-backed explanations would be connected later through
-        server-side services — no API keys are needed or requested here.
-      </DemoNotice>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <FormSection id="tutor-narration" title="Narration" icon={<AudioLines aria-hidden="true" />}>

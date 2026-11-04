@@ -11,7 +11,7 @@ export default function CourseNotFound() {
         icon={<BookX />}
         headingLevel="h1"
         title="We couldn't find that course"
-        description="The link may be outdated or the course isn't part of this demo shelf. Here's what is available:"
+        description="The link may be outdated or the course isn't on the shelf. Here's what is available:"
         className="py-14"
         action={
           <div className="flex flex-col items-center gap-4">

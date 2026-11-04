@@ -89,7 +89,7 @@ export function CourseShowcase() {
           </li>
         ))}
       </ul>
-      <p className="mx-auto mt-4 max-w-7xl px-4 text-xs text-lux-muted sm:px-8">Illustrative editions — demo content.</p>
+      <p className="mx-auto mt-4 max-w-7xl px-4 text-xs text-lux-muted sm:px-8">Illustrative editions.</p>
     </section>
   )
 }

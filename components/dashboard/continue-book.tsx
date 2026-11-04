@@ -58,11 +58,11 @@ export function ContinueBook({ course: seeded }: { course: LearningCourse }) {
                 <span className="font-semibold tabular-nums">{position.completedPages}</span>
                 <span className="text-[#E4B6BF]"> of {position.totalPages} pages</span>
               </span>
-              <span className="font-mono text-xs text-[#E4B6BF]">{position.percent}% · demo progress</span>
+              <span className="font-mono text-xs text-[#E4B6BF]">{position.percent}%</span>
             </div>
             <div
               role="progressbar"
-              aria-label={`${course.title} demo progress`}
+              aria-label={`${course.title} progress`}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={position.percent}

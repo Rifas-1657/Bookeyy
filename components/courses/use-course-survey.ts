@@ -18,7 +18,7 @@ const LIVE = isBackendConfigured()
 /**
  * With a backend, the survey counts as done once `/me/surveys` holds answers
  * for the course (the wizard saves them through `usePersonalization`).
- * Without one, answers live on this device and a course with demo progress
+ * Without one, answers live on this device and a course with progress
  * counts as already onboarded so "Resume" goes straight back to the book.
  */
 export function useCourseSurvey(course: LearningCourse) {

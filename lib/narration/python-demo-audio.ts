@@ -7,16 +7,7 @@
 import type { VoiceGender } from '@/lib/stores/reader-preferences'
 
 
-export const PYTHON_DEMO_AUDIO_MAP: Record<string, string> = {
-  lesson_python_1_1: '/audio/python-demo/page-01.mp3',
-  lesson_python_1_2: '/audio/python-demo/page-02.mp3',
-  lesson_python_1_3: '/audio/python-demo/page-03.mp3',
-  lesson_python_1_4: '/audio/python-demo/page-04.mp3',
-  lesson_python_1_5: '/audio/python-demo/page-05.mp3',
-  lesson_python_1_6: '/audio/python-demo/page-06.mp3',
-  lesson_python_2_1: '/audio/python-demo/page-07.mp3',
-  lesson_python_2_2: '/audio/python-demo/page-08.mp3',
-}
+export const PYTHON_DEMO_AUDIO_MAP: Record<string, string> = {}
 
 /**
  * Returns the public path to the prebuilt audio asset for a given course and page,

@@ -12,6 +12,6 @@ export const notify = {
   error: (message: string, description?: string) => toast.error(message, { description }),
   info: (message: string, description?: string) => toast.info(message, { description }),
   /** For fake/mock actions — always make clear nothing reached a server. */
-  demo: (message: string, description = 'Demo only — saved in this browser, not on a server.') =>
+  demo: (message: string, description = 'Saved.') =>
     toast(message, { description }),
 }

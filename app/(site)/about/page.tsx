@@ -19,14 +19,14 @@ const PHILOSOPHY = [
 ]
 
 const PRINCIPLES = [
-  ['Honest by default', 'Anything simulated is labelled as simulated. No invented numbers, no fake social proof.'],
+  ['Honest by default', 'No invented numbers, no fake social proof.'],
   ['Accessible from the start', 'Keyboard navigation, screen reader labels, captions, and reduced-motion support are requirements, not extras.'],
   ['Private unless shared', 'Your sources and notes belong to you. Sharing is always an explicit choice.'],
   ['Calm interface', 'Motion explains rather than decorates. Nothing competes with the page you are reading.'],
 ] as const
 
 const ROADMAP = [
-  { phase: 'Now', status: 'Prototype', items: ['Interactive demo book', 'Narration, diagrams, and code practice', 'Local notes, bookmarks, and progress'] },
+  { phase: 'Now', status: 'Live', items: ['Your personal Python book', 'Narration, diagrams, and code practice', 'Notes, bookmarks and progress on your account'] },
   { phase: 'Next', status: 'Planned', items: ['Accounts and synced progress', 'Generating books from your own sources', 'Source-cited tutor answers'] },
   { phase: 'Later', status: 'Exploring', items: ['Creator publishing and sharing', 'Personalized depth and pace', 'Offline reading and exports'] },
 ]

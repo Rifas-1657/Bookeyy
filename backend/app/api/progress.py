@@ -17,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import get_current_user
 from app.books.access import ensure_course_visible
 from app.db.database import get_db
-from app.db.models import Course, History, Page, Progress, User
+from app.db.models import Course, LearnerBook, History, Page, Progress, User
 
 router = APIRouter(prefix="/me/progress", tags=["progress"])
 
@@ -66,6 +66,14 @@ async def list_progress(
             completed_pages=sum(1 for r in rows if r.completed),
             total_pages=total_pages,
         ))
+    # The learner reads their own copy of the Python book: it counts as the Python course.
+    own = (await db.execute(
+        select(LearnerBook.course_id).where(LearnerBook.owner_id == current_user.id, LearnerBook.origin == "personal")
+        .order_by(LearnerBook.created_at.desc()).limit(1))).scalar_one_or_none()
+    copy = next((r for r in result if r.course_id == own), None)
+    base = next((r for r in result if r.course_id == "python"), None)
+    if copy and base:
+        base.completed_pages, base.total_pages = copy.completed_pages, copy.total_pages
     return result
 
 

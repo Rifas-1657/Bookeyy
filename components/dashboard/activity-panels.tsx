@@ -22,7 +22,6 @@ export function WeeklyActivity() {
       id="weekly"
       title="Weekly learning activity"
       description={`${total} minutes across ${activeDays} days`}
-      action={<BookeyBadge tone="neutral">Demo data</BookeyBadge>}
     >
       <WeeklyChart data={weeklyActivity} />
     </DashboardPanel>

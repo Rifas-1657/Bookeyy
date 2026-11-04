@@ -14,9 +14,9 @@ export const STEPS = [
     icon: FileVideo,
     title: 'Choose or upload a source',
     short: 'Source',
-    status: 'Demo only',
-    body: 'Start from a long lecture, tutorial, podcast, or conversation. In this prototype you pick the bundled demo source; nothing is sent to a server.',
-    detail: ['Video, audio, or transcript', 'Long-form works best', 'Demo source included'],
+    status: 'Live',
+    body: 'Start from a lecture, tutorial, PDF, slides, images, a link or just a topic. Bookey reads what you give it.',
+    detail: ['Video, audio, or transcript', 'Long-form works best', 'Your own files and links'],
   },
   {
     key: 'personalize',
@@ -32,8 +32,8 @@ export const STEPS = [
     icon: Sparkles,
     title: 'Generate the book',
     short: 'Generate',
-    status: 'Simulated',
-    body: 'Bookey would transcribe the source, find the key ideas, and arrange them into chapters and short pages. Here, the progress is a scripted demonstration.',
+    status: 'Live',
+    body: 'Bookey finds the key ideas and arranges them into chapters and short pages, then writes every lesson.',
     detail: ['Chapters and page outline', 'Diagrams drafted per concept', 'Practice where it adds value'],
   },
   {

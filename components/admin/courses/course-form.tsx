@@ -98,7 +98,7 @@ export function CourseForm({ initial, mode }: { initial: AdminCourse; mode: 'new
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
       <AdminPageHeader
         title={mode === 'new' ? 'New course' : `Edit ${initial.title}`}
-        description="Demo form — saving updates this browser only. Published courses with a public page sync their title, description, level, and color to the catalog."
+        description="Published courses with a public page sync their title, description, level, and color to the catalog."
         actions={
           <>
             <BookeyButton variant="outline" nativeButton={false} render={<Link href="/admin/courses" />}>
@@ -245,7 +245,7 @@ export function CourseForm({ initial, mode }: { initial: AdminCourse; mode: 'new
                 </select>
               </Field>
               <p id="course-locale-hint" className="-mt-3 text-xs text-muted-foreground">
-                Demo only — content is English for now.
+                Content is English for now.
               </p>
             </div>
           </AdminPanel>

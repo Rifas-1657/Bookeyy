@@ -67,6 +67,13 @@ async def generate_lessons(job: ClaimedJob) -> dict:
     return {"jobId": job_id}
 
 
+@register("personal_book.build", on_dead=_dead)
+async def build_personal_book(job: ClaimedJob) -> dict:
+    from app.books import personal
+    await personal.build(job.payload["jobId"], job.payload["userId"])
+    return {"jobId": job.payload["jobId"]}
+
+
 async def fail_orphaned_builds() -> int:
     """Builds left non-terminal with no queue job at all (created by code before the durable
     queue, or a crash between create and enqueue) can never finish: fail them so they are

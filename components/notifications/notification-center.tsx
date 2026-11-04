@@ -90,12 +90,12 @@ export function NotificationCenter() {
           className="mt-6"
           icon={<BellOff />}
           title={items.length === 0 ? 'No notifications' : 'Nothing in this category'}
-          description={items.length === 0 ? 'You removed everything. Restore the demo inbox any time.' : 'Try another category.'}
+          description={items.length === 0 ? 'Nothing here right now.' : 'Try another category.'}
           action={
             items.length === 0 ? (
               <BookeyButton size="sm" variant="outline" onClick={restoreDemo}>
                 <RotateCcw aria-hidden="true" />
-                Restore demo notifications
+                Restore notifications
               </BookeyButton>
             ) : undefined
           }

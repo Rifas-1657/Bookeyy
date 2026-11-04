@@ -42,6 +42,9 @@ class SurveyAnswers(BaseModel):
     style: Literal["example", "diagram", "code"]
     language: Literal["tanglish", "english"]
     pace: Literal["calm", "balanced", "fast"]
+    goal: Literal["job", "college", "automation", "data", "web", "ai", "hobby"] | None = None
+    dailyMinutes: Literal["10", "20", "30", "60"] | None = None
+    project: str | None = Field(default=None, max_length=120)
     accessibility: Accessibility = Field(default_factory=Accessibility)
 
 

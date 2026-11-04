@@ -494,30 +494,6 @@ async def test_password_reset_revokes_tokens_and_is_single_use(app_client):
         assert (await c.get("/me/progress")).status_code == 401
 
 
-# ── 11. Invites: atomic, email-bound, role literal ──────────────────────────────
-
-async def test_invite_bound_to_email_and_single_use(app_client, admin_user):
-    from app.auth.service import claim_invite, create_invite
-    async with AsyncSessionLocal() as db:
-        raw = await create_invite(db, admin_user.id, role="admin", invited_email="Bound@Example.com")
-    async with _client() as c:
-        r = await c.post("/auth/signup", json={"email": "someone-else@example.com", "password": "password-123",
-                                               "display_name": "X", "invite_token": raw})
-        assert r.status_code == 403
-    async with AsyncSessionLocal() as db:
-        inv = (await db.execute(select(Invite).where(Invite.invited_email == "bound@example.com"))).scalars().first()
-        assert inv is not None and inv.used_at is None
-        first = await claim_invite(db, inv.id, admin_user.id)
-        second = await claim_invite(db, inv.id, admin_user.id)
-        await db.commit()
-    assert first is True and second is False
-
-
-async def test_invite_role_must_be_admin_or_learner(admin_http_client):
-    r = await admin_http_client.post("/admin/members/invite", json={"role": "superuser"})
-    assert r.status_code == 422
-
-
 def test_expiry_columns_use_naive_utc():
     now = utcnow()
     assert now.tzinfo is None

@@ -20,7 +20,7 @@ export function MobileNavDrawer({ open, onOpenChange }: MobileNavDrawerProps) {
         <DrawerHeader className="items-start gap-3 text-left">
           <BookeyLogo />
           <DrawerTitle className="sr-only">Workspace navigation</DrawerTitle>
-          <DrawerDescription className="text-xs">Demo workspace · sample data only</DrawerDescription>
+          <DrawerDescription className="text-xs">Your learning workspace</DrawerDescription>
         </DrawerHeader>
         <nav aria-label="Workspace" className="flex-1 overflow-y-auto px-3 pb-6">
           <WorkspaceNavList onNavigate={() => onOpenChange(false)} />

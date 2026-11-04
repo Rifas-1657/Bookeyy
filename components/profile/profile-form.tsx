@@ -228,7 +228,7 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
       <div className="sticky bottom-24 z-10 flex flex-col gap-3 rounded-3xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="size-4 shrink-0" />
-          Profile changes are stored in this browser demo.
+          Profile changes are stored in this browser.
         </p>
         <div className="flex gap-2">
           {editing ? (

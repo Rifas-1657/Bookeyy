@@ -48,9 +48,9 @@ export function AdminCourses() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Courses"
-        description="Create and edit demo courses. Changes are saved in this browser and published courses appear in the public catalog."
+        description="Publish or hide courses. Published courses appear in the public catalog."
         actions={
-          <BookeyButton nativeButton={false} render={<Link href="/admin/courses/new" />}>
+          <BookeyButton nativeButton={false} render={<Link href="/admin/course-builder" />}>
             <Plus aria-hidden="true" />
             New course
           </BookeyButton>
@@ -121,7 +121,7 @@ export function AdminCourses() {
       ) : (
         <TableScroller label="Courses table">
           <table className="w-full min-w-[52rem] text-sm">
-            <caption className="sr-only">Demo courses with status, level, chapters, and last edited date</caption>
+            <caption className="sr-only">Courses with status, level, chapters, and last edited date</caption>
             <thead className="border-b border-border bg-muted/50">
               <tr>
                 <th scope="col" className={thClass}>Name</th>
@@ -172,7 +172,6 @@ function FilterSelect({
 }
 
 function CourseRow({ course }: { course: AdminCourse }) {
-  const duplicateCourse = useAdminDemo((s) => s.duplicateCourse)
   const togglePublish = useAdminDemo((s) => s.togglePublish)
   const publishing = course.status === 'draft'
 
@@ -218,21 +217,11 @@ function CourseRow({ course }: { course: AdminCourse }) {
                 className="gap-2 rounded-xl px-2.5 py-2"
                 onClick={() => {
                   togglePublish(course.id, DEMO_TODAY)
-                  notify.demo(publishing ? `Published “${course.title}”` : `Moved “${course.title}” to drafts`)
+                  notify.success(publishing ? `Published “${course.title}”` : `Moved “${course.title}” to drafts`)
                 }}
               >
                 {publishing ? <Eye aria-hidden="true" /> : <EyeOff aria-hidden="true" />}
                 {publishing ? 'Publish' : 'Unpublish'}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="gap-2 rounded-xl px-2.5 py-2"
-                onClick={() => {
-                  const copy = duplicateCourse(course.id, DEMO_TODAY)
-                  if (copy) notify.demo(`Created “${copy.title}” as a draft`)
-                }}
-              >
-                <Copy aria-hidden="true" />
-                Duplicate
               </DropdownMenuItem>
               {course.sourceId && course.status === 'published' && (
                 <>

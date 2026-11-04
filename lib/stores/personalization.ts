@@ -12,6 +12,8 @@ export type ExplanationStyle = 'example' | 'diagram' | 'code'
 /** Bookey narrates and answers only in these two languages. */
 export type PreferredLanguage = 'tanglish' | 'english'
 export type SessionPace = 'calm' | 'balanced' | 'fast'
+export type LearningGoal = 'job' | 'college' | 'automation' | 'data' | 'web' | 'ai' | 'hobby'
+export type DailyMinutes = '10' | '20' | '30' | '60'
 
 export interface AccessibilityPreferences {
   reducedMotion: boolean
@@ -27,6 +29,10 @@ export interface Personalization {
   style: ExplanationStyle
   language: PreferredLanguage
   pace: SessionPace
+  goal: LearningGoal | null
+  dailyMinutes: DailyMinutes | null
+  /** What the learner dreams of building, in their own words. */
+  project: string | null
   accessibility: AccessibilityPreferences
 }
 
@@ -44,6 +50,9 @@ export const defaultPersonalization: Personalization = {
   style: 'example',
   language: 'tanglish',
   pace: 'balanced',
+  goal: null,
+  dailyMinutes: null,
+  project: null,
   accessibility: { reducedMotion: false, largerText: false, captions: false },
 }
 

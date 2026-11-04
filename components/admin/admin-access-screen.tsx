@@ -14,7 +14,7 @@ export function AdminAccessScreen() {
         <ShieldOff className="size-7" />
       </span>
       <div className="space-y-2">
-        <h1 className="font-display text-2xl font-bold text-balance">Demo admin console</h1>
+        <h1 className="font-display text-2xl font-bold text-balance">Admin console</h1>
         <p className="leading-relaxed text-pretty text-muted-foreground">
           This area previews the owner tools for Bookey. It is a navigation state for the demo, not a sign-in: there are no
           real accounts, roles, or permissions, and every change stays in this browser.

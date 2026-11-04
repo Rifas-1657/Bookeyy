@@ -26,7 +26,7 @@ export function RevisionTopics() {
     <DashboardPanel
       id="revision"
       title="Needs revision"
-      description="Topics where demo quiz answers were shaky."
+      description="Topics where your quiz answers were shaky."
       action={
         revised.length > 0 ? (
           <BookeyButton size="sm" variant="ghost" onClick={() => setRevised([])}>
@@ -82,7 +82,7 @@ export function BadgeGrid() {
   const badges = getBadges()
   const earned = badges.filter((badge) => badge.earned).length
   return (
-    <DashboardPanel id="badges" title="Badges" description={`${earned} of ${badges.length} earned in this demo.`}>
+    <DashboardPanel id="badges" title="Badges" description={`${earned} of ${badges.length} earned.`}>
       <ul className="grid gap-3 sm:grid-cols-2">
         {badges.map((badge) => (
           <li

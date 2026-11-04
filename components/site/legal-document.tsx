@@ -20,7 +20,7 @@ export function LegalDocument({ eyebrow, title, lead, updated, sections }: Legal
   return (
     <>
       <PageHero size="compact" eyebrow={eyebrow} title={title} lead={lead}>
-        <p className="font-mono text-xs tracking-[0.14em] text-[#FFF1F3]/55 uppercase">Draft version · {updated}</p>
+        <p className="font-mono text-xs tracking-[0.14em] text-[#FFF1F3]/55 uppercase">Updated · {updated}</p>
       </PageHero>
 
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[15rem_1fr] lg:gap-20">
@@ -42,10 +42,6 @@ export function LegalDocument({ eyebrow, title, lead, updated, sections }: Legal
         </nav>
 
         <article className="min-w-0">
-          <DemoNotice title="Prototype draft — replace with reviewed legal text before public launch.">
-            This page is a structural draft written in plain language. It is not legal advice and has not been reviewed by a
-            lawyer.
-          </DemoNotice>
           <div className="mt-12 space-y-14">
             {sections.map((s, i) => (
               <section key={s.id} id={s.id} aria-labelledby={`${s.id}-title`} className="scroll-mt-28">

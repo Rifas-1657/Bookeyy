@@ -13,10 +13,9 @@ export function DashboardGreeting({ empty }: { empty: boolean }) {
             : 'Good to see you back. One page, one small practice — that is how a book gets finished.'}
         </p>
       </div>
-      {!empty && (
+      {!empty && demoStreakDays > 0 && (
         <BookeyBadge tone="soft" icon={<Flame aria-hidden="true" />} className="self-start px-3 py-1 text-sm sm:self-auto">
           {demoStreakDays}-day streak
-          <span className="rounded-full bg-background/60 px-1.5 text-[10px] tracking-wide uppercase">Demo</span>
         </BookeyBadge>
       )}
     </div>

@@ -223,7 +223,7 @@ function SavedCard({ lab }: { lab: CodeLab }) {
       <div className="flex items-start justify-between gap-2">
         <p className="flex items-center gap-2 text-sm font-semibold">
           <BookmarkCheck className="size-4 text-book-deep" aria-hidden="true" />
-          Saved to this demo book
+          Saved to this book
         </p>
         <button
           type="button"

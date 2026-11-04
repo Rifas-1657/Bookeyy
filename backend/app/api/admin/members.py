@@ -2,22 +2,20 @@
 app/api/admin/members.py — Admin member management.
 
 GET    /admin/members           — list all users
-POST   /admin/members/invite    — create invite (returns raw token)
 DELETE /admin/members/{user_id} — deactivate a user
 """
 from __future__ import annotations
 
-from typing import Literal
+from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import require_admin
-from app.auth.service import MAX_LEARNER_SEATS, can_add_learner, create_invite
 from app.db.database import get_db
-from app.db.models import User
+from app.db.models import LearnerBook, Progress, User
 
 router = APIRouter(prefix="/admin/members", tags=["admin"])
 
@@ -31,15 +29,6 @@ class MemberOut(BaseModel):
     created_at: str
 
 
-class InviteRequest(BaseModel):
-    role: Literal["admin", "learner"] = "learner"
-    email: EmailStr | None = None
-
-
-class InviteResponse(BaseModel):
-    token: str
-    role: str
-    message: str
 
 
 class MessageResponse(BaseModel):
@@ -62,25 +51,18 @@ async def list_members(
     ]
 
 
-@router.post("/invite", response_model=InviteResponse, status_code=status.HTTP_201_CREATED)
-async def create_member_invite(
-    body: InviteRequest,
+@router.get("/overview")
+async def overview(
     admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
-) -> InviteResponse:
-    if body.role == "learner" and not await can_add_learner(db):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Platform learner seat limit reached (max {MAX_LEARNER_SEATS})",
-        )
-    raw_token = await create_invite(
-        db, created_by=admin.id, role=body.role, invited_email=body.email
-    )
-    return InviteResponse(
-        token=raw_token,
-        role=body.role,
-        message="Share this invite token with the new member for POST /auth/signup",
-    )
+) -> dict:
+    """Real platform figures for the admin overview."""
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    learners = (await db.execute(select(func.count(User.id)).where(User.role == "learner"))).scalar_one()
+    joined = (await db.execute(select(func.count(User.id)).where(User.created_at >= week_ago))).scalar_one()
+    books = (await db.execute(select(func.count(LearnerBook.id)))).scalar_one()
+    pages = (await db.execute(select(func.count(Progress.id)))).scalar_one()
+    return {"learners": learners, "joinedThisWeek": joined, "books": books, "pagesRead": pages}
 
 
 @router.delete("/{user_id}", response_model=MessageResponse)

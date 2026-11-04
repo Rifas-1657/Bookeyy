@@ -108,7 +108,7 @@ export function LoginForm() {
           </div>
         </fieldset>
         <p aria-live="polite" className="sr-only">
-          {pending ? 'Signing in to the demo.' : ''}
+          {pending ? 'Signing you in.' : ''}
         </p>
       </form>
       <AuthSwitch>

@@ -57,7 +57,7 @@ const FEATURES = [
     body: 'Technical books include practice snippets you can modify and run right on the page. No local setup, no copy-pasting into another tool.',
     points: ['Runs in the browser, nothing to install', 'Reset to the original example anytime', 'Output shown inline under the code'],
     visual: <PracticeMock />,
-    status: 'Python demo',
+    status: 'Python book',
   },
   {
     id: 'ask-questions',
@@ -108,8 +108,8 @@ export default function FeaturesPage() {
         aside={
           <div className="mx-auto aspect-square w-full max-w-sm">
             <Book3D
-              title="Python from Zero"
-              author="Bookey demo"
+              title="Python: The Complete Book"
+              author="Bookey"
               cover={{ base: '#E11D48', spine: '#9F1239', accent: '#FFE4E6', text: '#FFFFFF' }}
               className="size-full"
             />
@@ -118,7 +118,7 @@ export default function FeaturesPage() {
       >
         <MagneticButton size="lg" nativeButton={false} render={<Link href={ROUTES.demoCourse} />}>
           <BookOpen aria-hidden="true" />
-          Open demo course
+          Open the Python book
         </MagneticButton>
       </PageHero>
 

@@ -15,15 +15,15 @@ type Billing = 'monthly' | 'yearly'
 const PLANS = [
   {
     id: 'demo',
-    name: 'Free Demo',
-    blurb: 'Explore the sample book and every reader feature.',
+    name: 'Free',
+    blurb: 'Your own Python book and every reader feature.',
     price: { monthly: 0, yearly: 0 },
-    cta: { label: 'Open demo course', href: ROUTES.demoCourse },
+    cta: { label: 'Open the Python book', href: ROUTES.demoCourse },
     featured: false,
     features: [
-      ['Python from Zero demo book', true],
+      ['Your personal Python book', true],
       ['Narration, diagrams, and code practice', true],
-      ['Notes and bookmarks in this browser', true],
+      ['Notes and bookmarks saved to your account', true],
       ['Generate books from your sources', false],
     ],
   },

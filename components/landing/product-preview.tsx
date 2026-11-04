@@ -132,13 +132,12 @@ export function ProductPreview() {
           <h2 id="preview-title" className="mt-5 text-4xl leading-[1.02] font-semibold tracking-tight text-[#FFF1F3] sm:text-6xl">
             Hear it, watch it draw, then run it.
           </h2>
-          <p className="mt-5 text-lg text-[#FFF1F3]/70">A live sample page. Press play, then run the code — everything here happens in your browser.</p>
+          <p className="mt-5 text-lg text-[#FFF1F3]/70">A real page. Press play, then run the code.</p>
         </div>
 
         <div data-theme="book" className="mt-12 overflow-hidden rounded-[2rem] border border-white/10 !bg-book-page shadow-[0_60px_120px_-40px_rgb(0_0_0/0.8)]">
           <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3 sm:px-7">
-            <p className="font-mono text-xs tracking-[0.18em] text-book-deep uppercase">Python from Zero · Chapter 4 · Page 2</p>
-            <span className="rounded-full border border-border px-2.5 py-0.5 text-[11px] text-book-muted">Demo</span>
+            <p className="font-mono text-xs tracking-[0.18em] text-book-deep uppercase">Python: The Complete Book · Chapter 4 · Page 2</p>
           </div>
 
           <div className="grid lg:grid-cols-[1.1fr_1fr]">
@@ -222,7 +221,7 @@ export function ProductPreview() {
                   ))}
                 </pre>
                 <div className="border-t border-white/10 px-4 py-3 font-mono text-[13px]" aria-live="polite">
-                  <p className="text-[11px] tracking-[0.18em] text-book-paper/40 uppercase">Output · simulated</p>
+                  <p className="text-[11px] tracking-[0.18em] text-book-paper/40 uppercase">Output</p>
                   <div className="mt-1 min-h-[4.5rem]">
                     {output.length === 0 ? (
                       <p className="text-book-paper/40">Press Run to execute.</p>

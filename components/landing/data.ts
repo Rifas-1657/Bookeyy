@@ -35,8 +35,8 @@ export interface SpotlightCourse {
 export const SPOTLIGHT_COURSES: SpotlightCourse[] = [
   {
     slug: 'python-from-zero',
-    title: 'Python from Zero',
-    author: 'Bookey demo',
+    title: 'Python: The Complete Book',
+    author: 'Bookey',
     blurb: 'Variables, loops, and functions — with code you run on the page.',
     difficulty: 'Beginner',
     chapters: 12,
@@ -45,7 +45,7 @@ export const SPOTLIGHT_COURSES: SpotlightCourse[] = [
   {
     slug: 'java-foundations',
     title: 'Java Foundations',
-    author: 'Bookey demo',
+    author: 'Bookey',
     blurb: 'Classes and objects explained with diagrams that draw themselves.',
     difficulty: 'Intermediate',
     chapters: 14,
@@ -54,7 +54,7 @@ export const SPOTLIGHT_COURSES: SpotlightCourse[] = [
   {
     slug: 'machine-learning-intuition',
     title: 'Machine Learning Intuition',
-    author: 'Bookey demo',
+    author: 'Bookey',
     blurb: 'Gradients and models, narrated step by step by a voice tutor.',
     difficulty: 'Advanced',
     chapters: 10,
@@ -63,7 +63,7 @@ export const SPOTLIGHT_COURSES: SpotlightCourse[] = [
   {
     slug: 'web-development-essentials',
     title: 'Web Development Essentials',
-    author: 'Bookey demo',
+    author: 'Bookey',
     blurb: 'HTML, CSS, and JavaScript with live previews for every chapter.',
     difficulty: 'Beginner',
     chapters: 16,

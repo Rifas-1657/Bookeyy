@@ -60,7 +60,7 @@ export function ChatMessageItem({ message, revealCount, onOpenSource }: ChatMess
       >
         <p className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-book-marker uppercase">
           <Sparkles className="size-3.5" aria-hidden="true" />
-          Demo tutor
+          Tutor
         </p>
         {thinking ? (
           <p className="inline-flex items-center gap-2 text-muted-foreground">
@@ -100,7 +100,7 @@ export function ChatMessageItem({ message, revealCount, onOpenSource }: ChatMess
       </div>
 
       {done && message.sources && message.sources.length > 0 && (
-        <ul aria-label="Demo sources" className="flex flex-wrap gap-1.5">
+        <ul aria-label="Sources" className="flex flex-wrap gap-1.5">
           {message.sources.map((source) => (
             <li key={source.label}>
               <button

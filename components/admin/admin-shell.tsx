@@ -24,6 +24,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     rehydrateAdminDemo()
+    useAdminDemo.getState().loadLive().catch(() => {})
   }, [])
 
   return (
@@ -69,9 +70,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
           <AdminBreadcrumbs pathname={pathname} />
           <div className="ml-auto flex shrink-0 items-center gap-3">
-            <BookeyBadge tone="warning" className="hidden sm:inline-flex">
-              Demo admin console
-            </BookeyBadge>
             {hydrated && demoAdmin && <AdminProfileMenu />}
           </div>
         </header>
@@ -88,7 +86,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
 function ShellSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading demo admin console" className="space-y-6">
+    <div aria-busy="true" aria-label="Loading admin console" className="space-y-6">
       <Skeleton className="h-9 w-64 rounded-xl" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (

@@ -208,7 +208,7 @@ async def test_evidence_updates_mastery_and_summary(learner_user, learner_token)
     async with await _client() as c:
         r = await c.post("/api/me/learning/python/events", headers=h, json={"events": [
             {"kind": "code_run", "pageId": PAGE, "correct": True},
-            {"kind": "repeat", "pageId": PAGE, "text": "labeled box puriyala"},
+            {"kind": "repeat", "pageId": PAGE, "text": "interpreter puriyala"},
         ]})
         assert r.status_code == 200, r.text
         assert r.json()["applied"] == 2
@@ -217,9 +217,9 @@ async def test_evidence_updates_mastery_and_summary(learner_user, learner_token)
         assert bad.status_code == 422          # graded evidence only comes from the grader
         s = (await c.get("/api/me/learning/python", headers=h)).json()
     concepts = {c["id"]: c for c in s["concepts"]}
-    assert set(concepts) >= {"variable", "labeled-box", "value"}
-    assert concepts["labeled-box"]["confusion"] == 1
-    assert concepts["labeled-box"]["mastery"] < concepts["variable"]["mastery"]
+    assert set(concepts) >= {"program", "interpreter", "run"}
+    assert concepts["interpreter"]["confusion"] == 1
+    assert concepts["interpreter"]["mastery"] < concepts["program"]["mastery"]
     assert s["chapters"][0]["number"] == 1 and s["model"] == "bkt"
     assert s["style"]["style"] in ts.STYLES
 
@@ -328,19 +328,19 @@ async def test_tutor_prompt_includes_learner_model_and_style(learner_user, monke
     await _reset(learner_user.id)
     async with AsyncSessionLocal() as db:
         await lm.apply_evidence(db, learner_user.id, "python", [
-            {"kind": "simpler", "pageId": PAGE, "text": "labeled box"},
-            {"kind": "simpler", "pageId": PAGE, "text": "labeled box"},
+            {"kind": "simpler", "pageId": PAGE, "text": "interpreter"},
+            {"kind": "simpler", "pageId": PAGE, "text": "interpreter"},
         ])
     from app.tutor import graph
     router = _StubRouter(reply=json.dumps({"in_scope": True, "is_injection": False, "grounded": True}))
     monkeypatch.setattr(graph, "_node_retrieve", lambda ctx: _noop())
-    gen = await graph.process_question("what is a labeled box in python?", learner_user.id, "s1", "python", 1, 1, [],
+    gen = await graph.process_question("what is an interpreter in python?", learner_user.id, "s1", "python", 1, 1, [],
                                        llm_router=router, page_id=PAGE, intent="simpler")
     events = [e async for e in gen]
     answer_calls = [c for c in router.calls if "How to explain this answer" in c.get("system", "")]
     assert answer_calls, [e.get("type") for e in events]
     system = answer_calls[0]["system"]
-    assert "labeled box" in system and "simpler" in system.lower()
+    assert "interpreter" in system and "simpler" in system.lower()
     end = next(e for e in events if e["type"] == "answer_end")
     assert end["style"]["depth"] == "simpler"
     # no other learner's data: learner2 has no evidence → no note

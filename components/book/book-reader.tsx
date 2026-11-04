@@ -598,13 +598,13 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
       const sentence = stream.currentSentence?.text ?? page.title
       const excerpt = sentence.length > 48 ? `${sentence.slice(0, 47).trimEnd()}…` : sentence
       const prompt =
-        kind === 'mic' ? `(Demo voice) Innoru example la sollunga: "${excerpt}"` : `Explain this part again: "${excerpt}"`
+        kind === 'mic' ? `Innoru example la sollunga: "${excerpt}"` : `Explain this part again: "${excerpt}"`
       setQueueState((prev) => {
         const items = prev.pageId === page.id ? prev.items : []
         return { pageId: page.id, items: [...items, { id: `${Date.now()}-${items.length}`, kind, excerpt, prompt }].slice(-5) }
       })
       toast('I’ll queue that question for the end of this section', {
-        description: kind === 'mic' ? 'Demo voice — your microphone is not used.' : 'Narration keeps playing.',
+        description: kind === 'mic' ? 'Voice question' : 'Narration keeps playing.',
       })
     },
     [page, stream.currentSentence],
@@ -626,8 +626,8 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
     return (
       <ReaderFrame>
         <BookMissing
-          title="This book isn’t in the demo yet"
-          description={`${course.title} doesn’t have seeded reader pages. The Python book is fully readable in this demo.`}
+          title="This book isn’t ready yet"
+          description={`${course.title} doesn’t have pages yet.`}
           primary={{ href: '/book/python', label: 'Open the Python book' }}
           secondary={{ href: `/courses/${course.id}`, label: 'Back to course' }}
         />
@@ -798,8 +798,8 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
           <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">
             {showMissing ? (
               <BookMissing
-                title="That page isn’t in the demo yet"
-                description={`Chapter ${initialChapter}${initialPage ? `, page ${initialPage}` : ''} hasn’t been written for this demo. You can keep reading from the seeded pages.`}
+                title="That page isn’t ready yet"
+                description={`Chapter ${initialChapter}${initialPage ? `, page ${initialPage}` : ''} hasn’t been written for this bomo. You can keep reading from the seeded pages.`}
                 primary={{ href: `/book/${course.id}`, label: 'Continue reading' }}
                 secondary={{ href: `/courses/${course.id}`, label: 'Back to course' }}
               />

@@ -10,7 +10,7 @@ export interface CourseStatus {
 
 export function getCourseStatus(course: LearningCourse): CourseStatus {
   const position = getCoursePosition(course)
-  if (!course.available) return { kind: 'locked', label: 'Locked in demo', percent: 0 }
+  if (!course.available) return { kind: 'locked', label: 'Coming soon', percent: 0 }
   if (position.finished) return { kind: 'completed', label: 'Completed', percent: 100 }
   if (position.started) return { kind: 'in-progress', label: `In progress · ${position.percent}%`, percent: position.percent }
   return { kind: 'not-started', label: 'Not started', percent: 0 }

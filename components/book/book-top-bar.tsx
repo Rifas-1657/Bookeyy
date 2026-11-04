@@ -108,11 +108,7 @@ export function BookTopBar(props: BookTopBarProps) {
               Page {pageNumber} of {totalPages}
             </span>
           )}
-          {props.online ? (
-            <BookeyBadge tone="soft" className="border-white/10">
-              Demo
-            </BookeyBadge>
-          ) : (
+          {!props.online && (
             <BookeyBadge tone="warning" icon={<WifiOff aria-hidden="true" />}>
               Offline
             </BookeyBadge>

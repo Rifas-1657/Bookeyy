@@ -51,7 +51,7 @@ const OUTLINE = [
 function Generate() {
   return (
     <Panel className="bg-book-paper">
-      <p className="font-mono text-[11px] tracking-[0.16em] text-book-ink/60 uppercase">Generating outline · simulated</p>
+      <p className="font-mono text-[11px] tracking-[0.16em] text-book-ink/60 uppercase">Generating outline</p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-book-ink/10">
         <motion.span
           className="block h-full rounded-full bg-book-deep"

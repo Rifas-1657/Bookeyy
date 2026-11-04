@@ -13,6 +13,8 @@ POST /api/books/media               multipart: files (ONE video/audio, or 1..BOO
 GET  /api/books/limits              → upload limits + what this server can read (vision / OCR / ffmpeg)
 POST /api/books/detect              {url} → {type, url, label}   (no network; for the UI badge)
 GET  /api/books                     → my books [{jobId, courseId, title, status, progress, …}]
+POST /api/books/personal            → 201 {jobId, courseId, status}: the learner's own Python book, from their survey
+GET  /api/books/personal            → {exists, jobId, courseId, status, progress, steps, error, ready}
 GET  /api/books/quota               → {running, maxConcurrent, today, maxPerDay, exempt}
 GET  /api/books/jobs/{id}           → job snapshot (same shape as the admin builder) + book fields
 GET  /api/books/jobs/{id}/stream    → SSE; `event: job` data = that snapshot; `event: end` when done
@@ -35,7 +37,7 @@ from fastapi.responses import StreamingResponse
 from starlette.datastructures import UploadFile
 
 from app.auth.dependencies import get_current_user
-from app.books import service
+from app.books import personal, service
 from app.books.limits import AUDIO_EXTS, DOCUMENT_EXTS, IMAGE_EXTS, VIDEO_EXTS, get_media_limits
 from app.books.service import BookError, MediaIn, UploadIn
 from app.course_builder import runner
@@ -201,6 +203,22 @@ async def detect(body: dict = Body(...), _: User = Depends(get_current_user)) ->
 @router.get("")
 async def my_books(user: User = Depends(get_current_user)) -> list[dict]:
     return await service.list_books(user)
+
+
+@router.post("/personal", status_code=status.HTTP_201_CREATED)
+async def create_personal(user: User = Depends(get_current_user)) -> dict:
+    """Build the learner's own Python book from their saved survey."""
+    try:
+        return await personal.start(user)
+    except personal.PersonalBookError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+
+
+@router.get("/personal")
+async def get_personal(user: User = Depends(get_current_user)) -> dict:
+    """Newest personal book and how far it has got; {"exists": false} before the first one."""
+    book = await personal.latest(user)
+    return {"exists": True, **book} if book else {"exists": False}
 
 
 @router.get("/quota")

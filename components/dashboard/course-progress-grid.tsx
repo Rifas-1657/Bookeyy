@@ -45,7 +45,7 @@ export function CourseProgressCard({ course: seeded }: { course: LearningCourse 
           </span>
           <span className="font-mono tabular-nums">{position.percent}%</span>
         </div>
-        <ProgressBar value={position.percent} label={`${course.title} demo progress`} />
+        <ProgressBar value={position.percent} label={`${course.title} progress`} />
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t border-border pt-3 text-xs">

@@ -156,7 +156,7 @@ export function VoiceDock({
   const caption = !streamingEnabled
     ? 'Full page view. Press play to switch to guided narration.'
     : status === 'listening'
-      ? 'Listening (demo) — nothing is being recorded.'
+      ? 'Listening…'
       : status === 'thinking'
         ? 'Thinking about your question…'
         : completed
@@ -352,10 +352,10 @@ export function VoiceDock({
             muted
               ? stream.player.producesSound
                 ? 'Unmute narration'
-                : 'Unmute (this demo plays no audio)'
+                : 'Unmute'
               : stream.player.producesSound
                 ? 'Mute narration'
-                : 'Mute (this demo plays no audio)'
+                : 'Mute'
           }
         >
           <button
@@ -405,11 +405,11 @@ export function VoiceDock({
             </button>
           </Hint>
         )}
-        <Hint label={onBargeIn ? 'Interrupt and ask by voice' : speaking ? 'Queue a voice question (demo)' : 'Demo voice input'}>
+        <Hint label={onBargeIn ? 'Interrupt and ask by voice' : speaking ? 'Queue a voice question' : 'Voice input'}>
           <button
             type="button"
             onClick={toggleMic}
-            aria-label={onBargeIn ? `Interrupt ${TUTOR_NAME} and ask by voice` : speaking ? 'Queue a voice question for the end of this section' : 'Demo voice input'}
+            aria-label={onBargeIn ? `Interrupt ${TUTOR_NAME} and ask by voice` : speaking ? 'Queue a voice question for the end of this section' : 'Voice input'}
             aria-expanded={status === 'listening'}
             className={iconButton}
           >

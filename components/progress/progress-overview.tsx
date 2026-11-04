@@ -25,13 +25,13 @@ export function ProgressOverview() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-      <DashboardPanel id="overall" title="Overall completion" description="Across every book in your demo library.">
+      <DashboardPanel id="overall" title="Overall completion" description="Across every book in your library.">
         <div className="flex flex-col items-center gap-6 sm:flex-row lg:flex-col 2xl:flex-row">
           <ProgressRing
             value={overall.percent}
             size={132}
             strokeWidth={12}
-            label="Overall demo completion"
+            label="Overall completion"
             caption={`${overall.completed} of ${overall.total} pages`}
           />
           <dl className="grid w-full grid-cols-2 gap-3">
@@ -57,7 +57,7 @@ export function ProgressOverview() {
                 <ProgressRing
                   value={position.percent}
                   size={88}
-                  label={`${course.title} demo progress, ${position.completedPages} of ${position.totalPages} pages`}
+                  label={`${course.title} progress, ${position.completedPages} of ${position.totalPages} pages`}
                 />
                 <span className="text-sm font-medium text-balance">{course.title}</span>
                 <span className="text-xs text-muted-foreground tabular-nums">

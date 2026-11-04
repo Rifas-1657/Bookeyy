@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { BookReader } from '@/components/book/book-reader'
 import { GeneratedBookReader } from '@/components/book/generated-book-reader'
+import { PersonalBookGate } from '@/components/book/personal-book-gate'
 import { BookClientProvider } from '@/lib/book-client/react'
 import { loadBookPages } from '@/lib/api/pages'
 import { getLearningCourse, learningCourses } from '@/lib/mock/learning'
@@ -46,6 +47,7 @@ export default async function BookReaderPage({ params, searchParams }: BookPageP
       />
     )
   }
+  if (course.id === 'python' && process.env.NEXT_PUBLIC_BOOKEY_API_URL) return <PersonalBookGate />
   const pages = await loadBookPages(course.id)
 
   return (

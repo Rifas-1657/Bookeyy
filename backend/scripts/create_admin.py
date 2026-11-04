@@ -10,6 +10,8 @@ machine that can reach the production database, with the production DATABASE_URL
       python scripts/create_admin.py --email you@example.com
   # existing account → admin with a new password:
   ... python scripts/create_admin.py --email you@example.com --reset
+  # or take the production database from deploy/secrets.env (works in any shell):
+  python scripts/create_admin.py --email you@example.com --production
 
 After logging in as admin, invite learners from the admin Members page
 (POST /api/admin/members/invite).
@@ -42,12 +44,29 @@ def _password() -> str:
     return pw
 
 
+def _use_production_db() -> None:
+    """Point this run at SUPABASE_DB_URL from deploy/secrets.env (set before app imports)."""
+    secrets = ROOT.parent / "deploy" / "secrets.env"
+    if not secrets.is_file():
+        raise SystemExit(f"{secrets} not found.")
+    for line in secrets.read_text(encoding="utf-8").splitlines():
+        key, _, value = line.strip().partition("=")
+        if key == "SUPABASE_DB_URL" and "://" in value:
+            os.environ["DATABASE_URL"] = f"postgresql+asyncpg://{value.split('://', 1)[1]}?ssl=require"
+            os.environ["DB_PGBOUNCER"] = "true"
+            return
+    raise SystemExit("SUPABASE_DB_URL is missing from deploy/secrets.env.")
+
+
 async def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--email", default=os.environ.get("BOOKEY_ADMIN_EMAIL", ""))
     ap.add_argument("--name", default="Bookey Admin")
     ap.add_argument("--reset", action="store_true", help="reset password / promote an existing user")
+    ap.add_argument("--production", action="store_true", help="use SUPABASE_DB_URL from deploy/secrets.env")
     args = ap.parse_args()
+    if args.production:
+        _use_production_db()
     email = args.email.strip().lower()
     if "@" not in email:
         raise SystemExit("Pass --email (or BOOKEY_ADMIN_EMAIL).")

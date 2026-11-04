@@ -11,7 +11,7 @@ export function SiteFooter() {
         <div className="max-w-sm space-y-3">
           <BookeyLogo tone="light" />
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Design system foundation. Every number on this site is sample data, and nothing you do here is sent to a
+            Bookey turns what you want to learn into a book that teaches you out loud. Made for
             server.
           </p>
         </div>

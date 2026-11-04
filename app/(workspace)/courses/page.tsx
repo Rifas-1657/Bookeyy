@@ -5,7 +5,7 @@ import { learningCourses } from '@/lib/mock/learning'
 
 export const metadata: Metadata = {
   title: 'Courses',
-  description: 'Browse Bookey demo courses by topic, difficulty, and length.',
+  description: 'Browse Bookey courses by topic, difficulty, and length.',
 }
 
 export default function CoursesPage() {

@@ -26,7 +26,7 @@ export function LuxCta() {
             <ArrowRight aria-hidden="true" />
           </MagneticButton>
           <BookeyButton size="lg" variant="outline" nativeButton={false} render={<Link href={ROUTES.demoCourse} />} className="border-lux-line bg-transparent text-lux-fg hover:bg-lux-fg/5">
-            Read a demo book
+            See the Python book
           </BookeyButton>
         </div>
       </div>

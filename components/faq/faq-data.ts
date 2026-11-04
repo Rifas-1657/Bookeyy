@@ -4,7 +4,7 @@ export const FAQ_CATEGORIES: [FaqCategory, string][] = [
   ['books', 'Videos to books'],
   ['narration', 'Narration'],
   ['content', 'Learning content'],
-  ['privacy', 'Privacy in this demo'],
+  ['privacy', 'Privacy'],
   ['accessibility', 'Accessibility'],
   ['future', 'Future capabilities'],
 ]
@@ -33,7 +33,7 @@ export const FAQ_ITEMS: { category: FaqCategory; q: string; a: string }[] = [
   {
     category: 'narration',
     q: 'Is the narration the original speaker’s voice?',
-    a: 'No. In the demo, narration uses a synthesized reading voice. Using an original speaker’s voice would require their explicit permission.',
+    a: 'No. Narration uses a synthesized reading voice. Using an original speaker’s voice would require their explicit permission.',
   },
   {
     category: 'content',
@@ -43,22 +43,22 @@ export const FAQ_ITEMS: { category: FaqCategory; q: string; a: string }[] = [
   {
     category: 'content',
     q: 'Which languages are supported for code practice?',
-    a: 'The demo includes Python examples you can edit and run in the browser. Support for more languages is on the roadmap.',
+    a: 'Yes. Python examples run right on the page, and you can edit them. Support for more languages is on the roadmap.',
   },
   {
     category: 'privacy',
-    q: 'Does this demo upload my files to a server?',
-    a: 'No. This prototype does not upload files to a server. The demo book ships with the app, and nothing you type or select is sent to Bookey.',
+    q: 'What happens to the files I upload?',
+    a: 'Files you upload to create a book are stored privately on our servers so Bookey can build your book. Only you can open that book.',
   },
   {
     category: 'privacy',
     q: 'Where are my notes and progress stored?',
-    a: 'In the demo, notes, bookmarks, and reading progress are kept in your browser only. Clearing site data removes them. There is no server-side account data in this prototype.',
+    a: 'Notes, bookmarks and reading progress are saved to your account, so they follow you across devices.',
   },
   {
     category: 'privacy',
     q: 'Do you track what I read?',
-    a: 'The prototype does not send reading activity anywhere. If analytics are added later, they will be described in the privacy policy before launch.',
+    a: 'Reading activity is used only to adapt your book and show your progress. We do not sell it or share it for advertising.',
   },
   {
     category: 'accessibility',
@@ -73,12 +73,12 @@ export const FAQ_ITEMS: { category: FaqCategory; q: string; a: string }[] = [
   {
     category: 'future',
     q: 'When can I generate books from my own videos?',
-    a: 'That requires a backend for processing sources, which does not exist yet. It is the next major milestone; the How it works page shows the planned flow as a simulation.',
+    a: 'Yes. Open Create a book and add a video, PDF, slides, images or a link, and Bookey writes it into a narrated book.',
   },
   {
     category: 'future',
     q: 'Will there be accounts and synced progress?',
-    a: 'Yes, accounts with progress synced across devices are planned alongside generation. Until then, the demo runs entirely in your browser.',
+    a: 'Yes. Your account keeps your books, notes and progress on every device.',
   },
   {
     category: 'future',

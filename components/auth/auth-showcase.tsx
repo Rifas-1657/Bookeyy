@@ -20,8 +20,8 @@ export function AuthShowcase() {
       </Link>
 
       <Book3D
-        title="Python from Zero"
-        author="Bookey demo"
+        title="Python: The Complete Book"
+        author="Bookey"
         cover={SHOWCASE_COVER}
         className="mx-auto aspect-square w-full max-w-md flex-1 max-h-[46vh]"
       />

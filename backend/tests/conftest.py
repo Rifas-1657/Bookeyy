@@ -132,14 +132,19 @@ def app_client():
 # User fixtures — async session-scoped, shared event loop via pytest.ini setting
 # ---------------------------------------------------------------------------
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def admin_user(app_client) -> User:
-    """Fetch the seeded dev admin from the real app DB."""
+    """The app seeds no accounts, so tests make their own admin."""
+    from app.auth.service import hash_password
     async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            select(User).where(User.email == "admin@bookey.dev")
-        )
-        return result.scalar_one()
+        user = (await db.execute(select(User).where(User.email == "admin@bookey.dev"))).scalar_one_or_none()
+        if user is None:
+            user = User(email="admin@bookey.dev", display_name="Bookey Admin", role="admin",
+                        password_hash=hash_password("bookey-admin-dev"))
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+        return user
 
 
 @pytest_asyncio.fixture(scope="session")

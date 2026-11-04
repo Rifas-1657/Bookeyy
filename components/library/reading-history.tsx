@@ -43,7 +43,7 @@ export function ReadingHistory({ limit, onViewAll }: ReadingHistoryProps) {
           extra={
             <BookeyButton variant="outline" size="sm" onClick={restoreDemo}>
               <RotateCcw aria-hidden="true" />
-              Restore demo history
+              Restore history
             </BookeyButton>
           }
         />

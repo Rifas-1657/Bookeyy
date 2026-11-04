@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Reveal } from '@/components/landing/reveal'
 import { ProcessTimeline } from '@/components/how-it-works/process-timeline'
 import { CtaBand } from '@/components/site/cta-band'
-import { DemoNotice } from '@/components/site/demo-notice'
 import { PageHero } from '@/components/site/page-hero'
 import { SectionLabel } from '@/components/ui-kit/section-label'
 
@@ -39,9 +38,6 @@ export default function HowItWorksPage() {
                 Select a step to see it happen.
               </h2>
             </div>
-            <DemoNotice title="Generation is simulated in this prototype" className="max-w-md">
-              The steps below illustrate the intended pipeline. Uploading and generating books from your own sources is not live yet.
-            </DemoNotice>
           </Reveal>
           <div className="mt-14">
             <ProcessTimeline />
@@ -74,7 +70,7 @@ export default function HowItWorksPage() {
       <CtaBand
         title={
           <>
-            Skip to step four <span className="text-primary">with the demo book.</span>
+            Skip to step four <span className="text-primary">with the Python book.</span>
           </>
         }
       />

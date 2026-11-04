@@ -10,7 +10,7 @@ import { featuredCourseId, getLearningCourse, learningCourses } from '@/lib/mock
 
 export const metadata: Metadata = {
   title: 'Overview',
-  description: 'Continue your book, practice for a few minutes, and track demo progress across your courses.',
+  description: 'Continue your book, practice for a few minutes, and track your progress across your courses.',
 }
 
 interface DashboardPageProps {
@@ -43,7 +43,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               <h2 id="courses-heading" className="font-display text-lg font-semibold">
                 Course progress
               </h2>
-              <span className="text-xs text-muted-foreground">Demo progress · page counts are per book</span>
+              <span className="text-xs text-muted-foreground">Page counts are per book</span>
             </div>
             <CourseProgressGrid courses={learningCourses} />
           </section>

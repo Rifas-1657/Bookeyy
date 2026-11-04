@@ -5,7 +5,7 @@ export default function BookNotFound() {
     <div className="theme-night flex min-h-dvh flex-col bg-night-gradient text-foreground">
       <BookMissing
         title="We couldn’t find that book"
-        description="The course link may be mistyped or the book was removed from the demo catalog."
+        description="The course link may be mistyped or the book was removed from the catalog."
         primary={{ href: '/courses', label: 'Browse courses' }}
         secondary={{ href: '/book/python', label: 'Open the Python book' }}
       />

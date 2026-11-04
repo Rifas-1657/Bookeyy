@@ -42,21 +42,12 @@ export function minutesToLevel(minutes: number): HeatmapDay['level'] {
 }
 
 /** 12 weeks oldest → newest, Mon → Sun. The final week matches the dashboard chart. */
-export const heatmap: HeatmapDay[][] = (() => {
-  const random = seeded(42)
-  return Array.from({ length: HEATMAP_WEEKS }, (_, week) =>
-    DAY_LABELS.map((day, dayIndex) => {
-      let minutes: number
-      if (week === HEATMAP_WEEKS - 1) {
-        minutes = weeklyActivity[dayIndex]?.minutes ?? 0
-      } else {
-        const ramp = 0.45 + (week / HEATMAP_WEEKS) * 0.4
-        minutes = random() < ramp ? Math.round(6 + random() * 38) : 0
-      }
-      return { week, day, minutes, level: minutesToLevel(minutes) }
-    }),
-  )
-})()
+export const heatmap: HeatmapDay[][] = Array.from({ length: HEATMAP_WEEKS }, (_, week) =>
+  DAY_LABELS.map((day, dayIndex) => {
+    const minutes = week === HEATMAP_WEEKS - 1 ? (weeklyActivity[dayIndex]?.minutes ?? 0) : 0
+    return { week, day, minutes, level: minutesToLevel(minutes) }
+  }),
+)
 
 export const weeklyTotals = heatmap.map((days, index) => ({
   label: index === HEATMAP_WEEKS - 1 ? 'This wk' : `Wk ${index + 1}`,
@@ -78,19 +69,8 @@ export function getHeatmapSummary() {
   return { activeDays: active.length, totalDays: days.length, totalMinutes: total, busiest, longestStreak: longest }
 }
 
-/** Demo quiz mastery for finished chapters, stable per course and chapter. */
 export function getChapterMastery(course: LearningCourse) {
-  const random = seeded(course.id.length * 97 + course.chapters.length)
-  return getChapterProgress(course).map((entry) => {
-    const roll = random()
-    const mastery =
-      entry.status === 'completed'
-        ? Math.round(62 + roll * 36)
-        : entry.status === 'in-progress'
-          ? Math.round((entry.pagesRead / entry.chapter.pages) * 55)
-          : 0
-    return { ...entry, mastery }
-  })
+  return getChapterProgress(course).map((entry) => ({ ...entry, mastery: 0 }))
 }
 
 export function getOverallCompletion() {
@@ -121,40 +101,7 @@ export interface RevisionTopic {
   score: number
 }
 
-export const revisionTopics: RevisionTopic[] = [
-  {
-    id: 'rev_java_division',
-    courseId: 'java',
-    chapter: 3,
-    topic: 'Integer vs. floating-point division',
-    reason: 'Missed 2 of 3 quiz questions on 7 / 2',
-    score: 33,
-  },
-  {
-    id: 'rev_ml_features',
-    courseId: 'machine-learning',
-    chapter: 1,
-    topic: 'Features vs. labels',
-    reason: 'Recall check answered after a hint',
-    score: 50,
-  },
-  {
-    id: 'rev_py_types',
-    courseId: 'python',
-    chapter: 2,
-    topic: 'Converting strings to numbers',
-    reason: 'Code cell raised a ValueError twice',
-    score: 58,
-  },
-  {
-    id: 'rev_py_elif',
-    courseId: 'python',
-    chapter: 4,
-    topic: 'Ordering elif conditions',
-    reason: 'Predicted output was wrong once',
-    score: 66,
-  },
-]
+export const revisionTopics: RevisionTopic[] = []
 
 export interface Badge {
   id: string

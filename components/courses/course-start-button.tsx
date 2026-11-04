@@ -24,8 +24,8 @@ export function CourseStartButton({ course, chapter, label, size = 'lg', variant
   if (!course.available) {
     return (
       <ModalDialog
-        title={`${course.title} is locked in this demo`}
-        description="This book is part of the demo catalog so you can explore its outline, but its pages aren't included yet. There's nothing to buy — it simply isn't available to read in this preview."
+        title={`${course.title} is coming soon`}
+        description="This book is part of the catalog so you can explore its outline, but its pages aren't included yet. There's nothing to buy — it simply isn't available to read in this preview."
         trigger={
           <BookeyButton size={size} variant={variant} className={className}>
             <Lock aria-hidden="true" />
@@ -40,7 +40,7 @@ export function CourseStartButton({ course, chapter, label, size = 'lg', variant
         }
       >
         <p className="text-sm text-muted-foreground">
-          Try <strong className="font-semibold text-foreground">Python from Zero</strong> or{' '}
+          Try <strong className="font-semibold text-foreground">Python: The Complete Book</strong> or{' '}
           <strong className="font-semibold text-foreground">Java Foundations</strong> to see the full reading experience.
         </p>
       </ModalDialog>

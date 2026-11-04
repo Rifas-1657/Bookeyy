@@ -123,10 +123,10 @@ export function SettingsForm() {
         />
       </FormSection>
 
-      <FormSection id="privacy" title="Privacy and demo data" description="Everything Bookey stores lives in this browser." icon={<ShieldCheck />}>
+      <FormSection id="privacy" title="Privacy and local data" description="Reading preferences kept in this browser." icon={<ShieldCheck />}>
         <div className="flex flex-col gap-3 px-1 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-medium">Clear local demo data</p>
+            <p className="font-medium">Clear local data</p>
             <p className="text-sm text-muted-foreground">
               Removes saved progress, profile, settings, notes and notifications. Other sites&apos; data is never touched.
             </p>
@@ -134,8 +134,8 @@ export function SettingsForm() {
           <ModalDialog
             open={confirmOpen}
             onOpenChange={setConfirmOpen}
-            title="Clear all Bookey demo data?"
-            description="This resets the demo to its starting state. Only keys created by Bookey are removed, and it cannot be undone."
+            title="Clear all Bookey data?"
+            description="This clears what Bookey keeps in this browser. Only keys created by Bookey are removed, and it cannot be undone."
             trigger={
               <BookeyButton variant="outline" className="shrink-0 text-destructive">
                 <Trash2 aria-hidden="true" />
@@ -148,7 +148,7 @@ export function SettingsForm() {
                   Cancel
                 </BookeyButton>
                 <BookeyButton className="bg-destructive text-white hover:bg-destructive/90" onClick={handleClear}>
-                  Clear demo data
+                  Clear local data
                 </BookeyButton>
               </>
             }

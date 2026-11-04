@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultTutorSettings, seedCourses, seedDocuments, seedMembers } from '@/lib/admin/seed'
 import type { AdminCourse, AdminDocument, DemoMember, TutorSettings } from '@/lib/admin/types'
 import { newId, uniqueSlug } from '@/lib/admin/utils'
+import { apiJson, isBackendConfigured } from '@/lib/api/auth'
 import { safeStorage } from '@/lib/storage'
 
 interface AdminDemoState {
@@ -30,6 +31,38 @@ interface AdminDemoState {
   removeMember: (id: string) => void
   saveTutor: (settings: TutorSettings) => void
   resetDemoData: () => void
+  overview: AdminOverview | null
+  /** Replaces members, courses and figures with what the server holds. */
+  loadLive: () => Promise<void>
+}
+
+export interface AdminOverview {
+  learners: number
+  joinedThisWeek: number
+  books: number
+  pagesRead: number
+}
+
+interface ServerMember {
+  id: string
+  email: string
+  display_name: string
+  role: string
+  is_active: boolean
+  created_at: string
+}
+
+interface ServerCourse {
+  id: string
+  title: string
+  description: string
+  language: string
+  level: string
+  available: boolean
+  category: string
+  cover: { base?: string }
+  chapter_count: number
+  created_at: string
 }
 
 const seedState = () => ({
@@ -43,6 +76,43 @@ export const useAdminDemo = create<AdminDemoState>()(
   persist(
     (set, get) => ({
       hydrated: false,
+      overview: null,
+      loadLive: async () => {
+        if (!isBackendConfigured()) return
+        const [members, courses, overview] = await Promise.all([
+          apiJson<ServerMember[]>('/admin/members'),
+          apiJson<ServerCourse[]>('/admin/courses'),
+          apiJson<AdminOverview>('/admin/members/overview'),
+        ])
+        set({
+          overview,
+          members: members
+            .filter((m) => m.is_active)
+            .map((m) => ({
+              id: m.id,
+              name: m.display_name || m.email,
+              email: m.email,
+              courseIds: [],
+              lastActiveAt: m.created_at,
+              status: 'active' as const,
+            })),
+          courses: courses
+            .filter((c) => c.category !== 'My books')
+            .map((c) => ({
+              id: c.id,
+              sourceId: c.id,
+              title: c.title,
+              slug: c.id,
+              description: c.description,
+              language: c.language,
+              level: c.level as AdminCourse['level'],
+              coverColor: c.cover?.base ?? '#2A2117',
+              chapters: [],
+              status: c.available ? ('published' as const) : ('draft' as const),
+              updatedAt: c.created_at,
+            })),
+        })
+      },
       demoAdmin: false,
       sidebarCompact: false,
       ...seedState(),
@@ -72,12 +142,19 @@ export const useAdminDemo = create<AdminDemoState>()(
         set((state) => ({ courses: [copy, ...state.courses] }))
         return copy
       },
-      togglePublish: (id, updatedAt) =>
+      togglePublish: (id, updatedAt) => {
+        if (isBackendConfigured()) {
+          const course = get().courses.find((c) => c.id === id)
+          const action = course?.status === 'published' ? 'unpublish' : 'publish'
+          void apiJson(`/admin/courses/${encodeURIComponent(id)}/${action}`, { method: 'POST' }).then(() => get().loadLive())
+          return
+        }
         set((state) => ({
           courses: state.courses.map((c) =>
             c.id === id ? { ...c, status: c.status === 'published' ? 'draft' : 'published', updatedAt } : c,
           ),
-        })),
+        }))
+      },
       addDocuments: (documents) => set((state) => ({ documents: [...documents, ...state.documents] })),
       updateDocument: (id, patch) =>
         set((state) => ({ documents: state.documents.map((d) => (d.id === id ? { ...d, ...patch } : d)) })),

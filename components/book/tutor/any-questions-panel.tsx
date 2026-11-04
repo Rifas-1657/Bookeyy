@@ -52,7 +52,7 @@ export function AnyQuestionsPanel({ queue, busy, hasNextPage, onAsk, onAskQueued
           <h2 id={titleId} className="font-display text-base font-semibold">
             Any questions?
           </h2>
-          <p className="text-xs text-muted-foreground">Demo answers — no AI service connected</p>
+          <p className="text-xs text-muted-foreground">Answers from your tutor</p>
         </div>
         <button
           type="button"
@@ -171,7 +171,7 @@ export function AnyQuestionsPanel({ queue, busy, hasNextPage, onAsk, onAskQueued
             aria-label={
               recorder.isApiConfigured
                 ? 'Record your question via microphone'
-                : 'Demo mic: fill in a sample transcript (microphone is not used)'
+                : 'Ask by voice'
             }
             className="grid size-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-foreground/80 transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-book-orange focus-visible:outline-none disabled:opacity-40"
           >

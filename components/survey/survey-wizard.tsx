@@ -21,6 +21,7 @@ import {
   finalizeDraft,
   genreChoices,
   getVisibleSteps,
+  goalChoices,
   interestChoices,
   labelFor,
   languageChoices,
@@ -28,6 +29,7 @@ import {
   paceChoices,
   stepMeta,
   styleChoices,
+  timeChoices,
   validateStep,
   type StepId,
   type SurveyDraft,
@@ -117,6 +119,7 @@ function SurveyWizardForm({ course }: { course: LearningCourse }) {
             <PreparationScreen
               courseId={course.id}
               courseTitle={course.title}
+              answers={submitted}
               summary={buildSummary(submitted)}
               onEdit={() => {
                 setSubmitted(null)
@@ -208,11 +211,11 @@ function SurveyWizardForm({ course }: { course: LearningCourse }) {
                 <div className="flex w-full max-w-md flex-col gap-6">
                   <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
                     <Sparkles aria-hidden="true" className="size-3.5 text-primary" />
-                    Live preview · demo
+                    Live preview
                   </p>
                   <BookPreview draft={draft} step={current} courseTitle={course.title} />
                   <p className="text-sm text-muted-foreground">
-                    A sketch of how your answers shape the page. Your choices stay on this device.
+                    A sketch of how your answers shape your book.
                   </p>
                 </div>
               </aside>
@@ -312,6 +315,23 @@ function StepBody({ step, draft, update, invalid }: StepBodyProps) {
   switch (step) {
     case 'level':
       return <SingleChoice {...shared} name="level" choices={levelChoices} value={draft.level} onChange={(level) => update({ level })} />
+    case 'goal':
+      return <SingleChoice {...shared} name="goal" choices={goalChoices} value={draft.goal} onChange={(goal) => update({ goal })} />
+    case 'time':
+      return <SingleChoice {...shared} name="time" choices={timeChoices} value={draft.dailyMinutes} onChange={(dailyMinutes) => update({ dailyMinutes })} />
+    case 'project':
+      return (
+        <input
+          aria-labelledby="survey-question"
+          aria-describedby="survey-hint"
+          data-first-field
+          maxLength={120}
+          value={draft.project ?? ''}
+          onChange={(event) => update({ project: event.target.value })}
+          placeholder="e.g. An app that tracks my cricket team's scores"
+          className="h-14 w-full rounded-2xl border border-border bg-card px-5 text-lg outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-ring/30"
+        />
+      )
     case 'interests':
       return (
         <MultiChoice
@@ -352,6 +372,7 @@ function buildSummary(result: Personalization) {
   const comfort = accessibilityChoices.filter((item) => result.accessibility[item.key]).map((item) => item.label)
   const summary = [
     { label: 'Level', value: labelFor(levelChoices, result.level) ?? '' },
+    { label: 'Goal', value: labelFor(goalChoices, result.goal) ?? '' },
     { label: 'Interests', value: result.interests.map((value) => labelFor(interestChoices, value)).join(', ') },
     { label: 'Style', value: labelFor(styleChoices, result.style) ?? '' },
     { label: 'Language', value: labelFor(languageChoices, result.language) ?? '' },

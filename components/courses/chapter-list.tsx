@@ -104,7 +104,7 @@ export function ChapterList({ course }: { course: LearningCourse }) {
                       {status === 'locked'
                         ? course.available
                           ? `Unlocks after chapter ${chapter.number - 1}.`
-                          : 'Not included in this demo.'
+                          : 'Coming soon.'
                         : `${pagesRead} of ${chapter.pages} pages read`}
                     </p>
                   </div>

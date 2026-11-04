@@ -184,20 +184,27 @@ notebook 1. Voices come from a **text description**, not a reference recording, 
 speaks *like* native Tanglish speakers without copying anyone. Bookey then fixes two descriptions
 (male / female teacher) as its house voices.
 
-* Kaggle: Accelerator **GPU T4 x2** (or P100), Internet **on**, secret `HF_TOKEN` (write).
+* Kaggle: Accelerator **GPU T4 x2** (or P100), Internet **on**. No secrets: the base model and data are attached as Kaggle inputs.
 * Memory: the 24-layer decoder (~0.6 B params) is trained, the Flan-T5 text encoder is frozen;
   fp16 + gradient checkpointing + batch 2 fits a 16 GB GPU. If you hit out-of-memory, run this same
   notebook on a 24 GB GPU (Lightning AI / Modal free credits) and double `BATCH`.
 * Sessions are 12 h max: checkpoints are pushed every `SAVE_STEPS`, and re-running resumes.
 '''),
     code('''
-!pip -q install "git+https://github.com/huggingface/parler-tts.git#egg=parler_tts[train]" accelerate jiwer
+!pip -q install "parler_tts[train] @ git+https://github.com/huggingface/parler-tts.git" accelerate jiwer
 !git clone -q https://github.com/huggingface/parler-tts.git /kaggle/working/parler-tts 2>/dev/null || true
 '''),
-    code(SECRETS),
     code('''
-DATA_REPO = f"{HF_USER}/bookey-tanglish-speech"
-OUT_REPO = f"{HF_USER}/bookey-parler-tanglish"   # private model repo for checkpoints
+import glob, os, shutil
+parts = sorted(glob.glob("/kaggle/input/**/part-*.parquet", recursive=True))
+assert parts, "attach the output of bookey-1-tanglish-dataset"
+BASE = os.path.dirname(glob.glob("/kaggle/input/**/model.safetensors", recursive=True)[0])
+DATA_DIR = "/kaggle/tmp/tanglish"   # train-*/test-* parquet files: load_dataset() finds the splits by name
+os.makedirs(DATA_DIR, exist_ok=True)
+from datasets import load_dataset
+raw = load_dataset("parquet", data_files=parts, split="train")
+for name in ("train", "test"):
+    raw.filter(lambda s, n=name: s == n, input_columns="split").remove_columns("split").to_parquet(f"{DATA_DIR}/{name}-00000-of-00001.parquet")
 BATCH, ACCUM = 2, 16                              # effective batch 32
 LR = 8e-5                                          # gentle: we adapt style, not relearn Tamil
 EPOCHS = 3
@@ -207,12 +214,12 @@ SMOKE_TEST = True    # first run: 60 steps to check memory + audio quality, then
     code('''
 import subprocess, shlex
 args = {
-    "model_name_or_path": "ai4bharat/indic-parler-tts",
-    "feature_extractor_name": "ai4bharat/indic-parler-tts",
+    "model_name_or_path": BASE,
+    "feature_extractor_name": BASE,
     "description_tokenizer_name": "google/flan-t5-large",
-    "prompt_tokenizer_name": "ai4bharat/indic-parler-tts",
-    "train_dataset_name": DATA_REPO, "train_split_name": "train",
-    "eval_dataset_name": DATA_REPO, "eval_split_name": "test",
+    "prompt_tokenizer_name": BASE,
+    "train_dataset_name": DATA_DIR, "train_split_name": "train",
+    "eval_dataset_name": DATA_DIR, "eval_split_name": "test",
     "target_audio_column_name": "audio", "description_column_name": "description",
     "prompt_column_name": "text",
     "max_duration_in_seconds": 15, "min_duration_in_seconds": 2, "max_text_length": 400,
@@ -227,17 +234,12 @@ args = {
     "output_dir": "/kaggle/working/parler_out", "overwrite_output_dir": False,
     "temporary_save_to_disk": "/kaggle/tmp/audio_codes", "save_to_disk": "/kaggle/tmp/encoded",
     "preprocessing_num_workers": 4, "dataloader_num_workers": 4, "group_by_length": True,
-    "push_to_hub": True, "hub_model_id": OUT_REPO,
+    "push_to_hub": False,
     "report_to": "none", "seed": 42, "attn_implementation": "sdpa",
 }
 if SMOKE_TEST:
     args.update(max_steps=60, max_train_samples=400, max_eval_samples=32, eval_steps=60, save_steps=60,
-                push_to_hub=False)
-if args["push_to_hub"]:
-    # The training script calls create_repo(exist_ok=True), which would make a PUBLIC repo.
-    # Create it private first; the script then reuses it as-is.
-    from huggingface_hub import HfApi
-    HfApi().create_repo(OUT_REPO, private=True, exist_ok=True)
+                )
 cli = " ".join(f"--{k} {shlex.quote(str(v).lower() if isinstance(v, bool) else str(v))}" for k, v in args.items())
 cmd = f"cd /kaggle/working/parler-tts && accelerate launch --mixed_precision fp16 training/run_parler_tts_training.py {cli}"
 print(cmd[:400], "...")
@@ -258,9 +260,9 @@ VOICES = {
               "like a native Tanglish speaker, at a moderate pace. The recording is clear and close to the microphone.",
 }
 device = "cuda" if torch.cuda.is_available() else "cpu"
-prompt_tok = AutoTokenizer.from_pretrained("ai4bharat/indic-parler-tts")
+prompt_tok = AutoTokenizer.from_pretrained(BASE)
 desc_tok = AutoTokenizer.from_pretrained("google/flan-t5-large")
-for name, ckpt in [("base", "ai4bharat/indic-parler-tts"), ("tuned", "/kaggle/working/parler_out")]:
+for name, ckpt in [("base", BASE), ("tuned", "/kaggle/working/parler_out")]:
     try:
         model = ParlerTTSForConditionalGeneration.from_pretrained(ckpt).to(device)
     except Exception as e:
@@ -294,15 +296,12 @@ LoRA on the native Tanglish dataset. Targets stay in Tamil script (English words
 native transcribers write them); Bookey's romanizer turns the output into the Latin Tanglish the
 learner sees. The merged model is converted to CTranslate2 int8 for faster-whisper.
 
-* Kaggle: GPU T4 (x1 is enough), Internet on, secret `HF_TOKEN` (write). ~3–5 h.
+* Kaggle: GPU T4 (x1 is enough), Internet on, no secrets needed: data comes from notebook 1's output. ~3–5 h.
 '''),
-    code('!pip -q install "transformers>=4.44,<4.53" "peft>=0.12" accelerate "datasets>=2.20,<4" jiwer evaluate soundfile librosa ctranslate2'),
-    code(SECRETS),
+    code('!pip -q install "transformers>=4.44,<4.53" "peft>=0.12" accelerate "datasets>=2.20,<4" jiwer evaluate soundfile librosa ctranslate2 && pip -q uninstall -y torchao'),
     code('''
 BASE = "openai/whisper-large-v3-turbo"
-DATA_REPO = f"{HF_USER}/bookey-tanglish-speech"
-OUT_REPO = f"{HF_USER}/bookey-whisper-turbo-tanglish"
-MAX_STEPS, BATCH, ACCUM, LR = 3000, 8, 2, 1e-4
+MAX_STEPS, BATCH, ACCUM, LR = 3000, 4, 4, 1e-4   # batch 8 runs out of memory on a 16 GB T4
 '''),
     code('''
 import torch
@@ -310,7 +309,13 @@ from datasets import Audio, load_dataset
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
 processor = WhisperProcessor.from_pretrained(BASE, language="tamil", task="transcribe")
-ds = load_dataset(DATA_REPO).cast_column("audio", Audio(sampling_rate=16_000))
+import glob, os
+from datasets import DatasetDict
+parts = sorted(glob.glob("/kaggle/input/**/part-*.parquet", recursive=True))
+assert parts, "attach the output of bookey-1-tanglish-dataset"
+raw = load_dataset("parquet", data_files=parts, split="train")
+ds = DatasetDict({n: raw.filter(lambda s, n=n: s == n, input_columns="split") for n in ("train", "test")})
+ds = ds.cast_column("audio", Audio(sampling_rate=16_000))
 
 def prepare(batch):
     a = batch["audio"]
@@ -364,22 +369,18 @@ trainer = Seq2SeqTrainer(
         output_dir="/kaggle/working/whisper_out", per_device_train_batch_size=BATCH, gradient_accumulation_steps=ACCUM,
         learning_rate=LR, warmup_steps=200, max_steps=MAX_STEPS, fp16=True, eval_strategy="steps", eval_steps=500,
         save_steps=500, save_total_limit=2, logging_steps=25, predict_with_generate=True, generation_max_length=444,
-        per_device_eval_batch_size=8, remove_unused_columns=False, label_names=["labels"], report_to="none"),
+        per_device_eval_batch_size=4, gradient_checkpointing=True, gradient_checkpointing_kwargs={"use_reentrant": False}, remove_unused_columns=False, label_names=["labels"], report_to="none"),
 )
 print("baseline:", trainer.evaluate())
 trainer.train(resume_from_checkpoint=any(p.startswith("checkpoint") for p in os.listdir("/kaggle/working/whisper_out")) if os.path.isdir("/kaggle/working/whisper_out") else False)
 print("fine-tuned:", trainer.evaluate())
 '''),
     code('''
-# Merge LoRA → full model → CTranslate2 int8 (what Bookey's faster-whisper loads), then push both.
+# Merge LoRA → full model → CTranslate2 int8 (what Bookey's faster-whisper loads), kept in this notebook's output.
 merged = model.merge_and_unload()
 merged.save_pretrained("/kaggle/working/whisper_merged"); processor.save_pretrained("/kaggle/working/whisper_merged")
 !ct2-transformers-converter --model /kaggle/working/whisper_merged --output_dir /kaggle/working/whisper_ct2 --quantization int8_float16 --copy_files tokenizer.json preprocessor_config.json --force
-from huggingface_hub import HfApi
-api = HfApi(); api.create_repo(OUT_REPO, private=True, exist_ok=True)
-api.upload_folder(folder_path="/kaggle/working/whisper_ct2", repo_id=OUT_REPO, path_in_repo="ct2")
-api.upload_folder(folder_path="/kaggle/working/whisper_merged", repo_id=OUT_REPO, path_in_repo="hf")
-print("Bookey: set FASTER_WHISPER_MODEL to the downloaded", OUT_REPO + "/ct2", "folder")
+print("Done: download whisper_ct2 from this notebook's output and set FASTER_WHISPER_MODEL to it")
 '''),
 ]
 

@@ -15,7 +15,7 @@ export function CourseSpotlights() {
             <h2 id="courses-title" className="mt-5 text-4xl leading-[1.02] font-semibold tracking-tight sm:text-6xl">
               Start with a book on the shelf.
             </h2>
-            <p className="mt-4 text-sm text-muted-foreground">Demo courses that show what a Bookey book looks like.</p>
+            <p className="mt-4 text-sm text-muted-foreground">What a Bookey book looks like.</p>
           </div>
           <Link href={ROUTES.courses} className="group inline-flex items-center gap-1.5 font-medium text-primary hover:underline">
             Browse all courses
@@ -41,7 +41,6 @@ export function CourseSpotlights() {
                 <div className="mt-5 flex items-center gap-2 text-xs">
                   <span className="rounded-full bg-secondary px-2.5 py-1 font-medium text-secondary-foreground">{course.difficulty}</span>
                   <span className="text-muted-foreground">{course.chapters} chapters</span>
-                  <span className="ml-auto rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">Demo</span>
                 </div>
                 <h3 className="mt-3 text-xl font-semibold">{course.title}</h3>
                 <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{course.blurb}</p>

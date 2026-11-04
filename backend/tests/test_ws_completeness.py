@@ -25,7 +25,8 @@ from starlette.testclient import WebSocketTestSession
 from app.auth.ticket import issue_ticket
 from app.db.database import AsyncSessionLocal
 from app.db.models import User
-from app.db.seed import PYTHON_PAGES
+from app.books.personal import load_book, page_fields
+PYTHON_PAGES = [{"id": "lesson_python_" + k.replace(".", "_"), **page_fields(v, {"language": "tanglish"})} for k, v in load_book().items()]
 from app.llm.providers.mock import MockLLMProvider
 from app.llm.router import LLMRouter
 

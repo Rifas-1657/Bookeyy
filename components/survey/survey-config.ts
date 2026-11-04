@@ -1,15 +1,17 @@
 import type {
   AccessibilityPreferences,
+  DailyMinutes,
   ExplanationStyle,
   Interest,
   LearnerLevel,
+  LearningGoal,
   MovieGenre,
   Personalization,
   PreferredLanguage,
   SessionPace,
 } from '@/lib/stores/personalization'
 
-export type StepId = 'level' | 'interests' | 'genre' | 'style' | 'language' | 'pace' | 'accessibility'
+export type StepId = 'level' | 'goal' | 'interests' | 'genre' | 'project' | 'style' | 'language' | 'pace' | 'time' | 'accessibility'
 
 /** Draft answers: required single choices start empty so the learner picks deliberately. */
 export interface SurveyDraft {
@@ -19,6 +21,9 @@ export interface SurveyDraft {
   style: ExplanationStyle | null
   language: PreferredLanguage
   pace: SessionPace | null
+  goal: LearningGoal | null
+  dailyMinutes: DailyMinutes | null
+  project: string | null
   accessibility: AccessibilityPreferences
 }
 
@@ -32,6 +37,23 @@ export const levelChoices: Choice<LearnerLevel>[] = [
   { value: 'new', label: 'New to this', description: 'Start from the very first idea, no jargon assumed.' },
   { value: 'basics', label: 'Know the basics', description: 'Skip the warm-up and go a little deeper.' },
   { value: 'projects', label: 'Built small projects', description: 'Focus on patterns, trade-offs, and real code.' },
+]
+
+export const goalChoices: Choice<LearningGoal>[] = [
+  { value: 'job', label: 'Get a job', description: 'Build the skills and projects interviews ask for.' },
+  { value: 'college', label: 'Clear college exams', description: 'Solid fundamentals, explained clearly.' },
+  { value: 'automation', label: 'Automate boring work', description: 'Adds a chapter on scripts that save you hours.' },
+  { value: 'data', label: 'Work with data', description: 'Adds a chapter on cleaning and analysing data.' },
+  { value: 'web', label: 'Build for the web', description: 'Adds a chapter on HTTP, APIs and JSON.' },
+  { value: 'ai', label: 'Get into AI', description: 'Adds a chapter on how machines learn.' },
+  { value: 'hobby', label: 'Just for fun', description: 'Enjoy the journey, no pressure.' },
+]
+
+export const timeChoices: Choice<DailyMinutes>[] = [
+  { value: '10', label: '10 minutes', description: 'A page or two a day.' },
+  { value: '20', label: '20 minutes', description: 'A steady daily habit.' },
+  { value: '30', label: '30 minutes', description: 'A lesson and its practice.' },
+  { value: '60', label: 'An hour or more', description: 'Serious daily progress.' },
 ]
 
 export const interestChoices: Choice<Interest>[] = [
@@ -90,8 +112,27 @@ export const stepMeta: Record<StepId, StepMeta> = {
   level: {
     id: 'level',
     eyebrow: 'Your starting point',
-    question: 'Where are you with this subject right now?',
+    question: 'Where are you with Python right now?',
     hint: 'Pick the one that sounds most like you.',
+  },
+  goal: {
+    id: 'goal',
+    eyebrow: 'Your why',
+    question: 'What do you want Python to do for you?',
+    hint: 'Your book adds the chapters that get you there.',
+  },
+  project: {
+    id: 'project',
+    eyebrow: 'Your dream project',
+    question: 'What would you love to build one day?',
+    hint: 'Optional. A line is enough. Your capstone and examples will lean towards it.',
+    optional: true,
+  },
+  time: {
+    id: 'time',
+    eyebrow: 'Your day',
+    question: 'How much time can you give each day?',
+    hint: 'We use this to plan your reminders and reviews.',
   },
   interests: {
     id: 'interests',
@@ -134,9 +175,9 @@ export const stepMeta: Record<StepId, StepMeta> = {
 }
 
 export function getVisibleSteps(draft: SurveyDraft): StepId[] {
-  const steps: StepId[] = ['level', 'interests']
+  const steps: StepId[] = ['level', 'goal', 'interests']
   if (draft.interests.includes('movies')) steps.push('genre')
-  steps.push('style', 'language', 'pace', 'accessibility')
+  steps.push('project', 'style', 'language', 'pace', 'time', 'accessibility')
   return steps
 }
 
@@ -144,6 +185,10 @@ export function validateStep(step: StepId, draft: SurveyDraft): string | null {
   switch (step) {
     case 'level':
       return draft.level ? null : 'Choose your current level to continue.'
+    case 'goal':
+      return draft.goal ? null : 'Choose what you want from Python to continue.'
+    case 'time':
+      return draft.dailyMinutes ? null : 'Choose your daily time to continue.'
     case 'interests':
       return draft.interests.length > 0 ? null : 'Pick at least one interest so examples feel familiar.'
     case 'style':
@@ -166,12 +211,15 @@ export function draftFromPersonalization(saved: Personalization, completed: bool
     style: null,
     language: saved.language,
     pace: null,
+    goal: null,
+    dailyMinutes: null,
+    project: null,
     accessibility: { ...saved.accessibility },
   }
 }
 
 export function finalizeDraft(draft: SurveyDraft): Personalization | null {
-  if (!draft.level || !draft.style || !draft.pace || draft.interests.length === 0) return null
+  if (!draft.level || !draft.style || !draft.pace || !draft.goal || !draft.dailyMinutes || draft.interests.length === 0) return null
   return {
     level: draft.level,
     interests: draft.interests,
@@ -179,6 +227,9 @@ export function finalizeDraft(draft: SurveyDraft): Personalization | null {
     style: draft.style,
     language: draft.language,
     pace: draft.pace,
+    goal: draft.goal,
+    dailyMinutes: draft.dailyMinutes,
+    project: draft.project?.trim() || null,
     accessibility: draft.accessibility,
   }
 }

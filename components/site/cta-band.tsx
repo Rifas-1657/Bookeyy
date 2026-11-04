@@ -17,7 +17,7 @@ export function CtaBand({
       Open a book and <span className="text-primary">see for yourself.</span>
     </>
   ),
-  lead = 'The demo course runs entirely in your browser. No upload, no setup, nothing to configure.',
+  lead = 'Answer a few questions and get your own Python book in about 5 minutes. Free, nothing to install.',
 }: CtaBandProps) {
   return (
     <section aria-labelledby="cta-band-title" className="px-3 py-20 sm:px-5 sm:py-28">
@@ -33,7 +33,7 @@ export function CtaBand({
           <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
             <MagneticButton size="lg" nativeButton={false} render={<Link href={ROUTES.demoCourse} />}>
               <BookOpen aria-hidden="true" />
-              Open demo course
+              Open the Python book
             </MagneticButton>
             <BookeyButton size="lg" variant="outline" nativeButton={false} render={<Link href={ROUTES.signup} />}>
               Create an account

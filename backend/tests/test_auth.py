@@ -107,19 +107,6 @@ async def test_refresh_with_cookie(http_client: AsyncClient):
 # Signup / invite
 # ---------------------------------------------------------------------------
 
-async def test_signup_without_invite(http_client: AsyncClient):
-    resp = await http_client.post(
-        "/auth/signup",
-        json={
-            "email": "noone@test.com",
-            "password": "password123",
-            "display_name": "No One",
-            "invite_token": "invalid-token",
-        },
-    )
-    assert resp.status_code == 403
-
-
 async def test_password_reset_no_enumeration(http_client: AsyncClient):
     """Password reset always returns 200 even for non-existent emails."""
     resp = await http_client.post(
@@ -147,16 +134,6 @@ async def test_admin_can_list_members(admin_http_client: AsyncClient):
     assert any(m["email"] == "admin@bookey.dev" for m in members)
 
 
-async def test_admin_can_create_invite(admin_http_client: AsyncClient):
-    resp = await admin_http_client.post(
-        "/admin/members/invite", json={"role": "learner"}
-    )
-    assert resp.status_code == 201, (
-        f"Expected 201, got {resp.status_code}: {resp.text}"
-    )
-    data = resp.json()
-    assert "token" in data
-    assert len(data["token"]) > 10
 
 
 async def test_idor_notes(

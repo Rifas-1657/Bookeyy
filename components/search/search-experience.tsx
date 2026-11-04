@@ -59,7 +59,7 @@ export function SearchExperience() {
     try {
       return { status: 'ready', results: searchDocs(trimmed, docs) }
     } catch {
-      return { status: 'error', message: 'Something went wrong while searching the demo library. Try a different term.' }
+      return { status: 'error', message: 'Something went wrong while searching your library. Try a different term.' }
     }
   }, [deferredQuery, docs])
 

@@ -17,7 +17,7 @@ import {
   type FieldErrors,
 } from './validation'
 
-type SignupField = 'name' | 'email' | 'password' | 'confirm' | 'terms' | 'invite'
+type SignupField = 'name' | 'email' | 'password' | 'confirm' | 'terms'
 
 const DEMO_DELAY_MS = 800
 
@@ -30,18 +30,11 @@ export function SignupForm() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [terms, setTerms] = useState(false)
-  const [invite, setInvite] = useState('')
   const live = isBackendConfigured()
   const [errors, setErrors] = useState<FieldErrors<SignupField>>({})
   const [pending, setPending] = useState(false)
 
   useEffect(() => () => clearTimeout(timer.current), [])
-
-  // Invite links look like /signup?invite=<token>.
-  useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('invite')
-    if (token) setInvite(token)
-  }, [])
 
   function validate(field: SignupField, values = { name, email, password, confirm, terms }) {
     switch (field) {
@@ -55,8 +48,6 @@ export function SignupForm() {
         return validateConfirmPassword(values.password, values.confirm)
       case 'terms':
         return values.terms ? undefined : 'Please accept the Terms and Privacy Policy to continue.'
-      case 'invite':
-        return !live || invite.trim() ? undefined : 'Enter the invite code from your invitation email.'
     }
   }
 
@@ -68,7 +59,7 @@ export function SignupForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (pending) return
-    const fields: SignupField[] = ['name', 'email', 'password', 'confirm', 'invite', 'terms']
+    const fields: SignupField[] = ['name', 'email', 'password', 'confirm', 'terms']
     const next = Object.fromEntries(fields.map((f) => [f, validate(f)])) as FieldErrors<SignupField>
     setErrors(next)
     if (fields.some((f) => next[f])) {
@@ -78,14 +69,12 @@ export function SignupForm() {
     setPending(true)
     if (live) {
       try {
-        await signup({ email: email.trim(), password, displayName: name.trim(), inviteToken: invite.trim() })
+        await signup({ email: email.trim(), password, displayName: name.trim() })
         router.replace('/dashboard')
       } catch (err) {
         setPending(false)
         if (err instanceof AuthError && err.status === 409) {
           setErrors({ email: 'An account with this email already exists. Log in instead.' })
-        } else if (err instanceof AuthError && err.status === 403) {
-          setErrors({ invite: err.message })
         } else if (err instanceof AuthError && err.status === 422) {
           setErrors({ email: 'Check your email and password, then try again.' })
         } else {
@@ -161,19 +150,6 @@ export function SignupForm() {
               revalidate('confirm', { confirm: e.target.value })
             }}
           />
-          {live && (
-            <AuthField
-              id="signup-invite"
-              label="Invite code"
-              name="invite"
-              autoComplete="off"
-              placeholder="From your invitation email"
-              value={invite}
-              error={errors.invite}
-              onChange={(e) => setInvite(e.target.value)}
-              onBlur={() => revalidate('invite')}
-            />
-          )}
           <AuthCheckbox
             id="signup-terms"
             name="terms"
@@ -195,11 +171,11 @@ export function SignupForm() {
             .
           </AuthCheckbox>
           <div className="pt-1">
-            <AuthSubmit pending={pending} label="Create account" pendingLabel={live ? 'Creating account…' : 'Setting up demo…'} />
+            <AuthSubmit pending={pending} label="Create account" pendingLabel={live ? 'Creating account…' : 'Setting up…'} />
           </div>
         </fieldset>
         <p aria-live="polite" className="sr-only">
-          {pending ? (live ? 'Creating your account.' : 'Opening the demo dashboard.') : ''}
+          {pending ? (live ? 'Creating your account.' : 'Opening your dashboard.') : ''}
         </p>
       </form>
       <AuthSwitch>

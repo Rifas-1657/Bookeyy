@@ -101,7 +101,7 @@ export function SearchNoResults({ query, onPick }: { query: string; onPick: (que
     <EmptyState
       icon={<SearchX />}
       title={`No matches for “${query}”`}
-      description="Check the spelling, use fewer words, or try one of the suggestions below. Search covers demo courses, chapters, book pages, and your notes."
+      description="Check the spelling, use fewer words, or try one of the suggestions below. Search covers courses, chapters, book pages, and your notes."
       action={
         <div className="flex flex-wrap items-center justify-center gap-2">
           {SUGGESTIONS.slice(0, 3).map((suggestion) => (

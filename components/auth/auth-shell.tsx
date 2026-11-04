@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowLeft, FlaskConical } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { BookeyLogo } from '@/components/ui-kit/bookey-logo'
 import { PageTransition } from '@/components/ui-kit/page-transition'
 import { AuthShowcase } from './auth-showcase'
@@ -32,10 +32,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         </main>
 
         <footer className="flex flex-col items-center gap-3 px-5 pb-6 text-xs text-ink-muted sm:flex-row sm:justify-between sm:px-10 sm:pb-8">
-          <p className="inline-flex items-center gap-1.5">
-            <FlaskConical aria-hidden="true" className="size-3.5 text-book-deep" />
-            Demo UI: authentication is not connected
-          </p>
+          <p>Learn anything, one page at a time.</p>
           <nav aria-label="Legal" className="flex items-center gap-4">
             <Link href="/terms" className="rounded hover:text-ink focus-visible:text-ink focus-visible:underline focus-visible:outline-none">
               Terms

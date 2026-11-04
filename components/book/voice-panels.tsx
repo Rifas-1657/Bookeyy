@@ -37,7 +37,7 @@ export function MicDemoPanel({ onClose }: { onClose: () => void }) {
       className={panelClass}
       onKeyDown={(event) => event.key === 'Escape' && onClose()}
     >
-      <PanelHeader id={titleId} title="Demo voice input" onClose={onClose} />
+      <PanelHeader id={titleId} title="Voice input" onClose={onClose} />
       <div className="mt-3 flex items-center justify-center rounded-2xl bg-black/20 px-4 py-3">
         <VoiceWaveform status="listening" seed={0} className="h-9" />
       </div>
@@ -50,7 +50,7 @@ export function MicDemoPanel({ onClose }: { onClose: () => void }) {
         className="mt-3 inline-flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 text-sm font-medium transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-book-orange focus-visible:outline-none"
       >
         <MicOff className="size-4" aria-hidden="true" />
-        Stop demo
+        Stop
       </button>
     </section>
   )
@@ -101,7 +101,7 @@ export function AskPanel({ pageTitle, tutor, onAsk, onClose }: AskPanelProps) {
             <div className="rounded-2xl rounded-bl-md border border-book-amber/20 bg-book-orange/10 px-3 py-2">
               <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-book-marker uppercase">
                 <Sparkles className="size-3.5" aria-hidden="true" />
-                Demo reply
+                Reply
               </p>
               <p className="mt-1 leading-relaxed">
                 In the full product, the tutor answers from &ldquo;{pageTitle}&rdquo; and cites the source. This demo

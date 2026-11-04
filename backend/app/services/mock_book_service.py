@@ -359,20 +359,12 @@ class MockBookService:
     # -----------------------------------------------------------------------
 
     def _get_page_data(self, course_id: str, page_id: str) -> Optional[dict[str, Any]]:
-        """Return the seeded page data for lesson_python_* pages."""
-        from app.db.seed import PYTHON_PAGES
-        if course_id != "python":
-            return None
-        for p in PYTHON_PAGES:
-            if p["id"] == page_id:
-                return p
+        """Every book, the Python book included, is read from the database (_load_db_page)."""
         return None
 
     async def _load_db_page(self, course_id: str, page_id: str) -> Optional[dict[str, Any]]:
         """Pages of generated books (course builder / learner books) live in the DB.
         Private learner books are only narrated for their owner (and admins)."""
-        if course_id == "python":
-            return None
         try:
             from app.books.access import user_can_view_course
             from app.db.database import AsyncSessionLocal

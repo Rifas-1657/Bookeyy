@@ -206,14 +206,13 @@ export async function login(email: string, password: string, remember: boolean) 
   return { role: (data.role === 'admin' ? 'admin' : 'learner') as UserRole }
 }
 
-export async function signup(input: { email: string; password: string; displayName: string; inviteToken: string }) {
+export async function signup(input: { email: string; password: string; displayName: string }) {
   const res = await send('/auth/signup', {
     method: 'POST',
     body: JSON.stringify({
       email: input.email,
       password: input.password,
       display_name: input.displayName,
-      invite_token: input.inviteToken,
     }),
   })
   if (!res.ok) throw await errorFrom(res)

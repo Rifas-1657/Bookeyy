@@ -100,7 +100,7 @@ function CourseStatusLine({ courseTitle, status }: { courseTitle: string; status
         <p className="text-xs font-medium text-foreground">{status.label}</p>
         <div
           role="progressbar"
-          aria-label={`${courseTitle} demo progress`}
+          aria-label={`${courseTitle} progress`}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={status.percent}

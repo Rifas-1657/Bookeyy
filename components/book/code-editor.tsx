@@ -320,7 +320,7 @@ export function CodeEditor(props: CodeEditorProps) {
           {engine === 'plain' && !preferPlain
             ? 'Rich editor unavailable — using the simple editor.'
             : props.readOnly && props.streamChars === null
-              ? 'Read-only while the demo runs.'
+              ? 'Read-only while the lesson runs.'
               : 'Python · runs in your browser'}
         </span>
         {engine === 'monaco' && (

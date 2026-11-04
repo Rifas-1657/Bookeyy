@@ -64,10 +64,10 @@ export function CourseOverview({ course }: { course: LearningCourse }) {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-semibold">Bookey Tutor</h3>
-                <BookeyBadge tone="neutral">Product demo</BookeyBadge>
+                <BookeyBadge tone="neutral">AI tutor</BookeyBadge>
               </div>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{course.tutorStyle}</p>
-              <p className="mt-2 text-xs text-muted-foreground">An AI teaching style for this demo — not a real instructor.</p>
+              <p className="mt-2 text-xs text-muted-foreground">An AI teaching style, not a real instructor.</p>
             </div>
           </div>
         </Panel>
@@ -115,7 +115,7 @@ export function CourseStartCard({ course: seeded }: { course: LearningCourse }) 
           </div>
           <div
             role="progressbar"
-            aria-label={`${course.title} demo progress`}
+            aria-label={`${course.title} progress`}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={position.percent}
@@ -143,7 +143,7 @@ export function CourseStartCard({ course: seeded }: { course: LearningCourse }) 
 
       <CourseStartButton course={course} className="mt-5 w-full" />
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        {course.available ? 'Free in this demo · progress stays on this device' : 'Not included in this demo preview'}
+        {course.available ? 'Free · your progress is saved to your account' : 'Coming soon'}
       </p>
     </section>
   )

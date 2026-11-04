@@ -99,7 +99,7 @@ export function ReaderSidePanel(props: ReaderSidePanelProps) {
   ]
 
   function jump(ref: PageRef) {
-    if (!props.onJump(ref)) notify.info?.('That page isn’t part of the demo yet.')
+    if (!props.onJump(ref)) notify.info?.('That page isn’t available yet.')
   }
 
   function renderNote(note: LibraryNote) {

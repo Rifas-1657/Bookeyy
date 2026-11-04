@@ -47,7 +47,7 @@ export function AvatarMenu() {
               {session?.displayName || profile.displayName}
             </span>
             <span className="block text-xs font-normal text-muted-foreground">
-              {live ? 'Signed in' : 'Sample account · not signed in'}
+              {live ? 'Signed in' : 'Not signed in'}
             </span>
           </DropdownMenuLabel>
         </DropdownMenuGroup>

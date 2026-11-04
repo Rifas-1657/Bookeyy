@@ -97,7 +97,7 @@ export function MasteryList() {
       description={
         live || hasModel
           ? 'From your quiz answers, questions and code runs (Bayesian knowledge tracing).'
-          : 'Demo scores — take a quiz in a book (“quiz me”) to see your own.'
+          : 'Take a quiz in a book (“quiz me”) to see your own.'
       }
     >
       {options.length > 1 && (
@@ -141,7 +141,7 @@ export function MasteryList() {
                       {entry.mastery}%
                     </span>
                   </div>
-                  <ProgressBar value={entry.mastery} label={`Chapter ${entry.chapter.number} demo mastery`} className="mt-2 h-1.5" />
+                  <ProgressBar value={entry.mastery} label={`Chapter ${entry.chapter.number} mastery`} className="mt-2 h-1.5" />
                 </div>
               </li>
             )
