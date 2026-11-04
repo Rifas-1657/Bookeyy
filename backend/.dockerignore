@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.venv*/
+**/__pycache__/
+*.pyc
+*.db
+chroma_db/
+uploads/
+audio_cache/
+.cache/
+.pytest_cache/
+reports/
+*.log

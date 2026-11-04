@@ -26,6 +26,13 @@ def get_storage() -> StorageBackend:
             region=s.s3_region,
             endpoint_url=s.s3_endpoint_url or None,
         )
+    if s.storage_backend == "supabase":
+        from app.knowledge.storage.supabase import SupabaseStorageBackend
+        return SupabaseStorageBackend(
+            url=s.supabase_url,
+            service_key=s.supabase_service_role_key,
+            bucket=s.supabase_storage_bucket,
+        )
     from app.knowledge.storage.local import LocalStorageBackend
     return LocalStorageBackend(root=s.storage_local_root)
 
@@ -37,6 +44,10 @@ def get_embedding_backend() -> EmbeddingBackend:
     if backend == "bge_m3":
         from app.knowledge.embeddings.bge_m3 import BgeM3Backend
         return BgeM3Backend(batch_size=s.embedding_batch_size)
+    if backend == "fastembed":
+        from app.knowledge.embeddings.fastembed_backend import FastEmbedBackend
+        return FastEmbedBackend(model=s.fastembed_model, cache_dir=s.fastembed_cache_dir,
+                                threads=s.fastembed_threads, batch_size=s.embedding_batch_size)
     if backend == "api":
         from app.knowledge.embeddings.api import ApiEmbeddingBackend
         return ApiEmbeddingBackend()
@@ -49,9 +60,11 @@ def get_embedding_backend() -> EmbeddingBackend:
 def get_vector_store() -> VectorStore:
     s = get_settings()
     if s.vector_store == "pgvector":
-        raise NotImplementedError(
-            "pgvector backend requires PostgreSQL. Set VECTOR_STORE=chroma for local dev."
-        )
+        if "postgresql" not in s.database_url.lower():
+            raise RuntimeError("VECTOR_STORE=pgvector requires a PostgreSQL DATABASE_URL "
+                               "(use VECTOR_STORE=chroma with SQLite)")
+        from app.knowledge.vectorstore.pgvector import PgVectorStore
+        return PgVectorStore()
     from app.knowledge.vectorstore.chroma import ChromaVectorStore
     persist = s.chroma_persist_dir if s.chroma_persist_dir else None
     return ChromaVectorStore(persist_dir=persist)

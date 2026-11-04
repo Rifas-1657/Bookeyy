@@ -1,5 +1,35 @@
 # Bookey Production Deploy Guide
 
+## Live stack (P3): Vercel + Render free + Supabase free
+
+| Concern | Choice | Notes |
+|---|---|---|
+| Frontend | Vercel Hobby | `NEXT_PUBLIC_BOOKEY_SAME_ORIGIN=1`: REST goes through Next rewrites to `BOOKEY_API_ORIGIN` (first-party cookies); WebSockets go direct to `NEXT_PUBLIC_BOOKEY_WS_URL` |
+| API + job worker | Render free web service, region singapore, Docker (`backend/Dockerfile`, `requirements-prod.txt`) | 512 MB RAM, no GPU, sleeps when idle, ephemeral disk. One uvicorn worker with the inline job worker (`JOBS_CONCURRENCY=1`). The container runs `alembic upgrade head` before starting |
+| Database | Supabase Postgres via the transaction pooler (:6543) | `DB_PGBOUNCER=true`, URL `postgresql+asyncpg://...?ssl=require` |
+| Vectors | pgvector, table `kb_vectors` (migration 0009) | `VECTOR_STORE=pgvector`; untyped `vector` column + partial HNSW index per dimension |
+| Embeddings | fastembed, `BAAI/bge-small-en-v1.5` (384-dim, ONNX, baked into the image) | Chosen because torch does not fit in 512 MB, the Gemini key is invalid and the HF token has no inference credits. Measured about 125 MB RSS after import, 313 MB with the model loaded. English-focused; `FASTEMBED_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` is multilingual but about 220 MB, so it needs a larger host. Changing model means re-indexing |
+| Files | Supabase Storage, private bucket `bookey`, REST backend | `STORAGE_BACKEND=supabase`; 1 GB total, 50 MB per object, hence `BOOKS_MAX_MEDIA_MB=45` |
+| Voice | STT Groq Whisper (`STT_PROVIDER=groq`), TTS Edge neural voices, male + female | `TTS_PROVIDER=local` with every `TTS_*_PROVIDER=edge`. Video/audio books transcribe through Groq in 10-minute chunks when faster-whisper is absent. Local engines stay optional for the laptop (`requirements.txt`) |
+| Narration | Pre-rendered audio stays the target (`scripts/prerender_audio.py`, zero TTS cost per listen) | `NARRATION_TTS=false` in production, same as the laptop: the server paces text and the reader plays prebuilt audio. Learner-created books have no narration audio until that is rendered to Storage |
+
+### Owner one-offs
+
+```bash
+cd backend
+# PowerShell: $env:DATABASE_URL = '...'; $env:DB_PGBOUNCER = 'true'
+export DATABASE_URL='postgresql+asyncpg://<user>:<password>@<pooler-host>:6543/postgres?ssl=require' DB_PGBOUNCER=true
+.venv/Scripts/python scripts/supabase_harden.py                          # closes Supabase's Data API over public tables
+.venv/Scripts/python scripts/create_admin.py --email you@example.com     # prompts for a password
+```
+
+`supabase_harden.py` matters: Supabase publishes `public` tables through PostgREST to anyone holding
+the project's anon key, and Bookey's tables (including `users`) have no RLS until it is run. Re-run it
+after any migration that adds a table. Invite learners from the admin Members page
+(`POST /api/admin/members/invite`).
+
+The sections below are the general reference.
+
 ## Overview
 
 Bookey requires three durable backing services — relational DB, vector store, and object storage.
@@ -117,7 +147,7 @@ cd backend
 DATABASE_URL=postgresql+asyncpg://... alembic upgrade head      # or: alembic -x url=postgresql+asyncpg://... upgrade head
 ```
 Run this before every deploy (e.g. as the platform's release / pre-deploy command:
-`alembic upgrade head`). Migration chain: `0001_baseline` → … → `0007_durable_jobs_schema_sync`.
+`alembic upgrade head`). Migration chain: `0001_baseline` → … → `0009_pgvector_store`.
 
 ### 2. Build and push Docker image
 ```bash

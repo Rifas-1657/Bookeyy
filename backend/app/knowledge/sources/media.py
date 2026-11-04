@@ -234,6 +234,11 @@ def transcribe_file(wav_path: str, state: dict | None = None) -> Transcript:
     name = os.getenv("MEDIA_WHISPER_MODEL", "auto")
     model = get_whisper_model(name)
     if model is None:
+        from app.config import get_settings
+        st = get_settings()
+        if st.stt_provider.lower() == "groq" and st.groq_api_key:
+            return transcribe_file_groq(wav_path, st.groq_api_key,
+                                        st.bookey_stt_model or st.groq_whisper_model, state)
         raise SourceError("Local transcription (faster-whisper) is not installed on this server.")
     kwargs = dict(task="transcribe", beam_size=max(1, _env_int("MEDIA_WHISPER_BEAM", 5)), vad_filter=True,
                   condition_on_previous_text=False)
@@ -258,6 +263,54 @@ def transcribe_file(wav_path: str, state: dict | None = None) -> Transcript:
         except Exception:
             device = ""
     return Transcript(segments=out, language=lang if isinstance(lang, str) else None, device=device, model=name)
+
+
+def transcribe_file_groq(wav_path: str, api_key: str, model: str, state: dict | None = None,
+                         chunk_seconds: int | None = None) -> Transcript:
+    """Blocking Groq Whisper transcription for hosts without faster-whisper (production).
+    The WAV is cut into ~10-minute MP3 chunks (Groq's free tier takes <= 25 MB per file)."""
+    import httpx
+    exe = _need_ffmpeg()
+    chunk = max(60, chunk_seconds or _env_int("MEDIA_GROQ_CHUNK_S", 600))
+    with wave.open(wav_path, "rb") as w:
+        total = w.getnframes() / float(w.getframerate() or 16000)
+    out: list[TimedSegment] = []
+    lang: str | None = None
+    with tempfile.TemporaryDirectory(prefix="bookey_groq_") as tmp, httpx.Client(timeout=180.0) as client:
+        start = 0.0
+        k = 0
+        while start < total:
+            dst = str(Path(tmp) / f"c{k:03d}.mp3")
+            import subprocess
+            subprocess.run([exe, "-hide_banner", "-nostdin", "-y", "-ss", f"{start:.2f}", "-t", str(chunk),
+                            "-i", wav_path, "-ac", "1", "-b:a", "48k", dst],
+                           check=True, capture_output=True, timeout=600)
+            for attempt in range(3):
+                with open(dst, "rb") as fh:
+                    r = client.post("https://api.groq.com/openai/v1/audio/transcriptions",
+                                    headers={"Authorization": f"Bearer {api_key}"},
+                                    files={"file": (f"c{k}.mp3", fh, "audio/mpeg")},
+                                    data={"model": model, "response_format": "verbose_json"})
+                if r.status_code == 429 and attempt < 2:
+                    time.sleep(20 * (attempt + 1))
+                    continue
+                break
+            if r.status_code >= 300:
+                raise SourceError(f"Cloud transcription failed ({r.status_code}).")
+            data = r.json()
+            lang = lang or data.get("language")
+            for seg in data.get("segments") or []:
+                txt = (seg.get("text") or "").strip()
+                if txt:
+                    out.append(TimedSegment(start=start + float(seg.get("start", 0.0)),
+                                            end=start + float(seg.get("end", 0.0)), text=txt))
+            start += chunk
+            k += 1
+            if state is not None:
+                state["pos"] = min(start, total)
+    if isinstance(lang, str) and len(lang) > 2:   # Groq reports names ("english") → codes
+        lang = {"english": "en", "tamil": "ta"}.get(lang.lower(), lang)
+    return Transcript(segments=out, language=lang, device="groq", model=model)
 
 
 def sections_from_segments(segments: list[TimedSegment], target_seconds: float) -> list[list[TimedSegment]]:
@@ -416,7 +469,8 @@ async def media_to_document(
 
     if not transcript.segments and not frames:
         raise SourceError("No speech or on-screen text was found in this recording.")
-    method = "faster-whisper" + (f" ({transcript.device})" if transcript.device else "")
+    method = ("Groq Whisper" if transcript.device == "groq"
+              else "faster-whisper" + (f" ({transcript.device})" if transcript.device else ""))
     if frames:
         method += " + key frames"
     return build_media_document(

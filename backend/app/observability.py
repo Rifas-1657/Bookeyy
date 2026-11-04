@@ -136,11 +136,12 @@ async def ready_handler(request: Request) -> JSONResponse:
         checks["database"] = {"status": "error", "detail": str(exc)[:100]}
         ok = False
 
-    # --- Vector store (ChromaDB) ---
+    # --- Vector store (Chroma in dev, pgvector in production) ---
     try:
-        from app.knowledge.vector_store import get_collection
-        col = await get_collection("__health__")
-        checks["vector_store"] = {"status": "ok"}
+        from app.knowledge import get_vector_store
+        vs = get_vector_store()
+        await vs.collection_info("__health__", "__health__")
+        checks["vector_store"] = {"status": "ok", "backend": type(vs).__name__}
     except Exception as exc:
         checks["vector_store"] = {"status": "degraded", "detail": str(exc)[:80]}
         # degraded — not fatal for readiness

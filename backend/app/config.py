@@ -149,9 +149,17 @@ class Settings(BaseSettings):
     s3_secret_key: str = ""
     s3_region: str = "auto"
     s3_endpoint_url: str = ""
+    # STORAGE_BACKEND=supabase: Supabase Storage over its REST API (service_role key, private bucket)
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "bookey"
     embedding_backend: str = "mock"
     embedding_batch_size: int = 32
     embedding_device: str = "auto"
+    # EMBEDDING_BACKEND=fastembed: small ONNX model on CPU (no torch). Default fits a 512 MB host.
+    fastembed_model: str = "BAAI/bge-small-en-v1.5"
+    fastembed_cache_dir: str = ""      # "" = fastembed default; the Docker image bakes the model in
+    fastembed_threads: int = 1
     vector_store: str = "chroma"
     chroma_persist_dir: str = "./chroma_db"
     retrieval_top_k: int = 5

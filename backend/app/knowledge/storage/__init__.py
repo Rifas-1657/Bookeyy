@@ -7,7 +7,9 @@ Implementations:
   - LocalStorageBackend — dev: writes to STORAGE_ROOT dir
   - S3StorageBackend    — prod: Supabase Storage / Cloudflare R2 via boto3
 
-Selection: settings.storage_backend = "local" | "s3"
+  - SupabaseStorageBackend — prod: Supabase Storage REST API (service_role key)
+
+Selection: settings.storage_backend = "local" | "s3" | "supabase"
 """
 from __future__ import annotations
 

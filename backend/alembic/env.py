@@ -31,7 +31,13 @@ def _url() -> str:
 _EXPRESSION_INDEXES = {"ix_pages_fts"}
 
 
+# Tables managed with raw SQL outside the ORM (PostgreSQL only): the pgvector store (0009).
+_NON_ORM_TABLES = {"kb_vectors"}
+
+
 def include_object(obj, name, type_, reflected, compare_to) -> bool:
+    if type_ == "table" and name in _NON_ORM_TABLES:
+        return False
     return not (type_ == "index" and name in _EXPRESSION_INDEXES)
 
 
