@@ -1,0 +1,8 @@
+backend/
+iqrabook/
+Course-PDF/
+tools/
+qa/
+e2e/
+deploy/
+*.md
