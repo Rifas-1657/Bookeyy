@@ -11,7 +11,6 @@ import {
   feedbackText,
   GUESS_SHORT,
   isDue,
-  LEARNING,
   learnStep,
   LEVEL_PRIOR,
   mentionedConcepts,
@@ -367,10 +366,4 @@ export function localGrade(courseId: string, questionId: string, answer: string,
       mastery,
     }
   })
-}
-
-/** Has any concept below "learning"? (used to decide whether to nudge a review) */
-export function hasLocalWeakness(courseId: string) {
-  const course = load()[courseId]
-  return Boolean(course && Object.values(course.concepts).some((c) => c.attempts > 0 && c.mastery < LEARNING))
 }

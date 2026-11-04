@@ -6,7 +6,6 @@ import type { NarrationStream } from '@/lib/narration/use-narration-stream'
 import {
   ackFor,
   ackProblem,
-  buildQuizPrompt,
   buildSimplerPrompt,
   type AckProblem,
   type IntentMatch,
@@ -46,6 +45,10 @@ export interface LessonCommandContext {
   stopAnswerVoice: () => void
   requestRunCode: () => void
   requestShowDiagram: () => void
+  /** R3: opens the graded quiz for this page in the tutor note. */
+  startQuiz: () => void
+  /** R3: learner-model evidence from a command ("repeat" signals the explanation didn't land). */
+  recordEvidence: (kind: 'repeat') => void
 }
 
 export interface CommandAck {
@@ -212,6 +215,7 @@ export function useLessonCommands(context: LessonCommandContext) {
           return
         }
         case 'repeat': {
+          c.recordEvidence('repeat')
           c.stopAnswerVoice()
           c.closeCard(false)
           c.stream.pause()
@@ -242,22 +246,23 @@ export function useLessonCommands(context: LessonCommandContext) {
           void say(line, intent).then(carryOn)
           return
         }
-        case 'simpler':
         case 'quiz': {
+          // R3: a graded quiz (lesson items / verified generated questions), not a tutor reply.
+          c.stopAnswerVoice()
+          c.startQuiz()
+          // The quiz speaks its own intro, so the acknowledgement is shown, not spoken.
+          announce(line)
+          return
+        }
+        case 'simpler': {
           if (c.tutor.busy) {
             void say(ackProblem('busy', lang), intent)
             return
           }
-          const prompt =
-            intent === 'quiz'
-              ? buildQuizPrompt(c.page.title, lang)
-              : buildSimplerPrompt(c.page.title, lang, c.stream.currentSentence?.text)
-          const display =
-            intent === 'quiz'
-              ? lang === 'english' ? 'Quiz me on this page' : 'Indha page-la quiz pannunga'
-              : lang === 'english' ? 'Explain this page more simply' : 'Innum simple-a sollunga'
+          const prompt = buildSimplerPrompt(c.page.title, lang, c.stream.currentSentence?.text)
+          const display = lang === 'english' ? 'Explain this page more simply' : 'Innum simple-a sollunga'
           c.stopAnswerVoice()
-          if (!c.tutor.ask(prompt, source, { display, kind: intent })) {
+          if (!c.tutor.ask(prompt, source, { display, kind: 'simpler' })) {
             void say(ackProblem('busy', lang), intent)
             return
           }
@@ -282,7 +287,7 @@ export function useLessonCommands(context: LessonCommandContext) {
         }
       }
     },
-    [say, problem, playAfter],
+    [say, problem, playAfter, announce],
   )
 
   const ackPlaying = useCallback(() => ackVoice.current !== null, [])

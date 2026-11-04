@@ -190,7 +190,7 @@ export function VoiceDock({
                   aria-label={`${item.label}. You can also say ${item.say.replace(/[“”]/g, '')}`}
                   disabled={
                     (item.intent === 'next_page' && !hasNextPage) ||
-                    ((item.intent === 'simpler' || item.intent === 'quiz') && tutorBusy)
+                    (item.intent === 'simpler' && tutorBusy)
                   }
                   className="inline-flex h-7 items-center rounded-full border border-white/10 bg-white/5 px-2.5 text-xs font-medium transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-book-orange focus-visible:outline-none disabled:opacity-35"
                 >

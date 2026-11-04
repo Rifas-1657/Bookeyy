@@ -190,7 +190,13 @@ export interface ClientEventPayloads {
     /** Client-generated correlation id echoed by every answer frame. */
     questionId: string
     /** Scope for retrieval and refusal checks. */
-    context: { courseId: string; pageId: string; language: TutorLanguage }
+    context: {
+      courseId: string
+      pageId: string
+      language: TutorLanguage
+      /** R3: the lesson command behind this ask ("simpler" re-explanations switch teaching style). */
+      intent?: 'simpler' | 'quiz'
+    }
   }
   run_code: {
     courseId: string

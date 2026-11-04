@@ -165,7 +165,7 @@ function VisualPage({
   /** Called when the lab starts on its own so mobile can show it. */
   onPractical?: () => void
 }) {
-  const lab = useCodeLab(page.id, page.codeExample, courseId)
+  const lab = useCodeLab(page.id, page.codeExample, courseId, page)
   const [split, setSplit] = useState<SplitView>('both')
   const narrationActive = diagramProgress !== null
   const diagramRef = useRef<HTMLDivElement>(null)

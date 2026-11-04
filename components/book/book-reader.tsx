@@ -37,6 +37,9 @@ import { speakAnswer, type SpokenAnswer } from '@/lib/narration/speak'
 import { LessonRecap } from './lesson-recap'
 import { OfflineControl } from './offline-control'
 import { TutorCard } from './tutor/tutor-card'
+import { GradedQuiz, type QuizMode } from './tutor/graded-quiz'
+import { LearningOffer } from './tutor/learning-offer'
+import { recordEvidence, useLearnerSummary } from '@/lib/learning'
 import type { TutorPresenceState } from './tutor/tutor-orb'
 import { useVoiceQuestion } from './tutor/use-voice-question'
 import { useHandsFree } from './tutor/use-hands-free'
@@ -173,7 +176,10 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   const goNext = useCallback(() => {
     if (index === null) return false
     // Moving forward past a page counts as finishing it.
-    if (page) markPageComplete(course.id, page.id)
+    if (page) {
+      markPageComplete(course.id, page.id)
+      recordEvidence(course.id, page, 'page_complete')
+    }
     return goTo(index + 1, { animate: true })
   }, [index, page, course.id, goTo])
 
@@ -210,7 +216,10 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
         : 'idle'
 
   useEffect(() => {
-    if (stream.status === 'completed' && page) markPageComplete(course.id, page.id)
+    if (stream.status === 'completed' && page) {
+      markPageComplete(course.id, page.id)
+      recordEvidence(course.id, page, 'page_complete')
+    }
   }, [stream.status, page, course.id])
 
   const handleToggleListen = useCallback(() => {
@@ -218,11 +227,13 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
       setViewMode('guided')
     }
     if (stream.status === 'completed') {
+      // Listening to the whole page again: a (weak) sign it did not fully land.
+      if (page) recordEvidence(course.id, page, 'relisten')
       stream.restart()
     } else {
       stream.toggle()
     }
-  }, [viewMode, setViewMode, stream])
+  }, [viewMode, setViewMode, stream, page, course.id])
 
   const handleStopListen = useCallback(() => {
     stream.stop()
@@ -241,7 +252,7 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   /* ------------------------- interruptions & answers ------------------------- */
 
   const voice = useVoiceQuestion()
-  const [card, setCard] = useState<{ open: boolean; mode: 'listening' | 'typing' | 'answer'; resume: boolean }>({
+  const [card, setCard] = useState<{ open: boolean; mode: 'listening' | 'typing' | 'answer' | 'quiz'; resume: boolean }>({
     open: false,
     mode: 'typing',
     resume: false,
@@ -293,6 +304,7 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
     (resume: boolean) => {
       stopAnswerVoice()
       voice.cancel()
+      setQuiz(null)
       setCard((current) => {
         if (!current.open) return current
         if (resume && current.resume) stream.resumeAfterInterrupt()
@@ -308,6 +320,21 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
     const wasSpeaking = stream.interrupt()
     setCard((current) => ({ open: true, mode: 'answer', resume: wasSpeaking || (current.open && current.resume) }))
   }, [viewMode, setViewMode, stream])
+
+  /* ------------------------- R3: graded quizzes & review ------------------------- */
+
+  const [quiz, setQuiz] = useState<{ mode: QuizMode; key: number } | null>(null)
+  const startQuiz = useCallback(
+    (mode: QuizMode) => {
+      if (!page) return
+      stopAnswerVoice()
+      voice.cancel()
+      const wasSpeaking = stream.interrupt()
+      setQuiz({ mode, key: Date.now() })
+      setCard((current) => ({ open: true, mode: 'quiz', resume: wasSpeaking || (current.open && current.resume) }))
+    },
+    [page, stopAnswerVoice, voice, stream],
+  )
 
   const commands = useLessonCommands({
     page,
@@ -332,7 +359,44 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
     stopAnswerVoice,
     requestRunCode: () => setRunRequest((n) => n + 1),
     requestShowDiagram: () => setDiagramRequest((n) => n + 1),
+    startQuiz: () => startQuiz('page'),
+    recordEvidence: (kind) => {
+      if (page) recordEvidence(course.id, page, kind)
+    },
   })
+
+  /** Speaks a quiz line in the teacher's voice (shares the answer voice, so "stop voice" works). */
+  const speakQuizLine = useCallback(
+    (text: string) => {
+      spokenRef.current?.stop()
+      commands.stopAck()
+      const spoken = speakAnswer(text, { lang: personalization.language, rate: narrationRate, muted: narrationMuted })
+      spokenRef.current = spoken
+      setAnswerSpeaking(spoken.audible)
+      return spoken.done.then(() => {
+        if (spokenRef.current !== spoken) return
+        spokenRef.current = null
+        setAnswerSpeaking(false)
+      })
+    },
+    [commands, personalization.language, narrationRate, narrationMuted],
+  )
+
+  // Offers: a spaced review at the start of the lesson, a quick check when a page is finished.
+  const learner = useLearnerSummary(course.id, (n) => course.chapters.find((c) => c.number === n)?.title ?? `Chapter ${n}`)
+  const dueCount = learner.data?.dueReviews.length ?? 0
+  const [reviewOffer, setReviewOffer] = useState<'pending' | 'shown' | 'done'>('pending')
+  useEffect(() => {
+    if (reviewOffer === 'pending' && introDone && dueCount > 0) setReviewOffer('shown')
+  }, [reviewOffer, introDone, dueCount])
+  const [checkOfferFor, setCheckOfferFor] = useState<string | null>(null)
+  const checkedPages = useRef(new Set<string>())
+  useEffect(() => {
+    if (stream.status !== 'completed' || !page || !streamingEnabled || checkedPages.current.has(page.id)) return
+    checkedPages.current.add(page.id)
+    const timer = window.setTimeout(() => setCheckOfferFor(page.id), 900)
+    return () => window.clearTimeout(timer)
+  }, [stream.status, page, streamingEnabled])
 
   /** Command or question? Clear commands act at once; unclear ones may ask the backend first. */
   const routeUtterance = useCallback(
@@ -358,6 +422,7 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
     stopAnswerVoice()
     voice.cancel()
     tutor.dismissLatest()
+    setQuiz(null)
     setCard((current) => {
       if (current.resume) stream.resumeAfterInterrupt()
       return { open: false, mode: 'typing', resume: false }
@@ -379,7 +444,7 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
       spokenRef.current = null
       setAnswerSpeaking(false)
       // A plain answer hands back to the lesson; diagrams/code stay up until the learner closes the note.
-      const hasExtras = Boolean(latest.code || latest.diagramSpec || latest.diagram?.length || latest.kind === 'quiz')
+      const hasExtras = Boolean(latest.code || latest.diagramSpec || latest.diagram?.length)
       if (!hasExtras && !latest.offTopic) {
         resumeTimer = window.setTimeout(() => {
           setCard((current) => {
@@ -396,6 +461,8 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   // A new page closes any open note (and drops a barge-in's ducking).
   useEffect(() => {
     stopAnswerVoice()
+    setQuiz(null)
+    setCheckOfferFor(null)
     setCard({ open: false, mode: 'typing', resume: false })
     stream.duck(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -811,7 +878,56 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
                     }}
                     onClose={closeCard}
                     willResume={card.resume}
+                    quizSlot={
+                      quiz && page ? (
+                        <GradedQuiz
+                          key={quiz.key}
+                          courseId={course.id}
+                          page={page}
+                          pages={pages}
+                          language={personalization.language}
+                          mode={quiz.mode}
+                          speak={speakQuizLine}
+                          stopSpeaking={stopAnswerVoice}
+                          onClose={closeCard}
+                        />
+                      ) : null
+                    }
                   />
+                  {!card.open && reviewOffer === 'shown' && (
+                    <LearningOffer
+                      kind="review"
+                      text={
+                        personalization.language === 'english'
+                          ? `Quick 1-minute review of ${dueCount === 1 ? 'an idea' : `${dueCount} ideas`} you missed earlier?`
+                          : `Munnaadi miss panna ${dueCount === 1 ? 'oru point' : `${dueCount} points`}-a 1-minute quick review pannalaama?`
+                      }
+                      acceptLabel={personalization.language === 'english' ? 'Start review' : 'Start pannunga'}
+                      declineLabel="Not now"
+                      onAccept={() => {
+                        setReviewOffer('done')
+                        startQuiz('review')
+                      }}
+                      onDecline={() => setReviewOffer('done')}
+                    />
+                  )}
+                  {!card.open && reviewOffer !== 'shown' && page && checkOfferFor === page.id && (
+                    <LearningOffer
+                      kind="check"
+                      text={
+                        personalization.language === 'english'
+                          ? 'Page done! Quick 3-question check before you move on?'
+                          : 'Page mudinjadhu! Move panradhukku munnaadi oru quick check?'
+                      }
+                      acceptLabel={personalization.language === 'english' ? 'Check me' : 'Check pannunga'}
+                      declineLabel="Skip the check"
+                      onAccept={() => {
+                        setCheckOfferFor(null)
+                        startQuiz('check')
+                      }}
+                      onDecline={() => setCheckOfferFor(null)}
+                    />
+                  )}
                   </>
                 }
               />

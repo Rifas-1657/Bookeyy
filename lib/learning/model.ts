@@ -332,14 +332,17 @@ export function reviewCard(card: ReviewCard, rating: Rating, now = Date.now()): 
   const d = card.difficulty
   const s = card.stability
   const rr = retrievability(card, now)
+  const d0 = (g: number) => Math.max(1, Math.min(10, W[4] - (g - 3) * W[5]))
   let stability: number
   if (card.reviews === 0) stability = W[r - 1]
   else if (rating === 'again') stability = W[11] * Math.pow(d, -W[12]) * (Math.pow(s + 1, W[13]) - 1) * Math.exp((1 - rr) * W[14])
   else
     stability =
       s *
-      (Math.exp(W[8]) * (11 - d) * Math.pow(s, -W[9]) * (Math.exp((1 - rr) * W[10]) - 1) * (r === 2 ? W[15] : 1) * (r === 4 ? W[16] : 1))
-  const difficulty = d - W[4] * (r - 3) + (W[5] * (10 - d) * (r - 1)) / 9
+      (1 +
+        Math.exp(W[8]) * (11 - d) * Math.pow(s, -W[9]) * (Math.exp((1 - rr) * W[10]) - 1) * (r === 2 ? W[15] : 1) * (r === 4 ? W[16] : 1))
+  // First review: D0(G); later: mean reversion toward D0(good).
+  const difficulty = card.reviews === 0 ? d0(r) : W[7] * d0(3) + (1 - W[7]) * (d - W[6] * (r - 3))
   return {
     stability: Math.max(0.1, stability),
     difficulty: Math.max(1, Math.min(10, difficulty)),

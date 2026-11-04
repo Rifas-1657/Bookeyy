@@ -1,8 +1,9 @@
 /**
- * "Quiz me" (R1): asks the tutor for 2–3 quick questions on the current page
- * and parses the reply into a list. Kept deliberately small and structured —
- * R3 (adaptive learning) replaces `buildQuizPrompt` with a learner-model-driven
- * quiz and grades answers; `parseQuizQuestions` stays the display contract.
+ * Tutor prompts for lesson commands. "Quiz me" is now the R3 graded quiz
+ * (components/book/tutor/graded-quiz.tsx + lib/learning); `buildQuizPrompt` /
+ * `parseQuizQuestions` remain only for asking the tutor itself for free-form
+ * questions. `buildSimplerPrompt` is sent with context.intent = "simpler", so the
+ * backend's teaching-style bandit picks a new angle.
  * Pure (no runtime imports) so node --test can load it.
  */
 

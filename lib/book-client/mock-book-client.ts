@@ -20,6 +20,7 @@ import {
   type DemoRunResult,
 } from '@/lib/runner'
 import { answerQuestion, tokenizeAnswer } from '@/lib/tutor/demo-tutor'
+import { chooseLocalStyle } from '@/lib/learning/local-model'
 import type { BookLessonPage, NarrationCueEvent } from '@/types/book'
 import { BaseBookClient } from './base-client'
 
@@ -313,6 +314,11 @@ export class MockBookClient extends BaseBookClient {
     })
     if (!question || pageIndex < 0 || !course) return
 
+    // R3: the in-browser learner model records the question and picks the teaching style.
+    const style = chooseLocalStyle(context.courseId, pages[pageIndex], question, {
+      simpler: context.intent === 'simpler',
+      language: context.language,
+    })
     const answer = answerQuestion({
       question,
       courseId: context.courseId as LearningCourseId,
@@ -320,6 +326,7 @@ export class MockBookClient extends BaseBookClient {
       page: pages[pageIndex],
       pageIndex,
       language: context.language,
+      style,
     })
 
     if (answer.intent === 'off-topic') {

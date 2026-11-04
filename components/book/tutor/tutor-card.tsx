@@ -7,15 +7,15 @@ import { useReducedMotion } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { DiagramCanvas } from '../diagram-canvas'
 import styles from '../book-feel.module.css'
-import { QuickQuiz } from './quick-quiz'
 import { TutorOrb, TUTOR_NAME, type TutorPresenceState } from './tutor-orb'
 import type { LatestAnswer } from './use-course-tutor'
 import type { VoiceQuestionState } from './use-voice-question'
 
 export interface TutorCardProps {
   open: boolean
-  /** What the learner is doing right now. */
-  mode: 'listening' | 'typing' | 'answer'
+  /** What the learner is doing right now ('quiz' shows `quizSlot`, the R3 graded quiz). */
+  mode: 'listening' | 'typing' | 'answer' | 'quiz'
+  quizSlot?: React.ReactNode
   voiceState: VoiceQuestionState
   interim: string
   voiceError: string | null
@@ -162,15 +162,15 @@ export function TutorCard(props: TutorCardProps) {
               </form>
             )}
 
+            {mode === 'quiz' && props.quizSlot}
+
             {mode === 'answer' && latest && (
               <div className="flex flex-col gap-3">
                 <p className="font-sans text-sm">
                   <span className="font-semibold text-book-deep">You asked</span> · {latest.question}
                 </p>
                 <div aria-live="polite">
-                  {latest.text && latest.kind === 'quiz' && !latest.offTopic ? (
-                    <QuickQuiz text={latest.text} final={latest.final} />
-                  ) : latest.text ? (
+                  {latest.text ? (
                     <p className={cn('whitespace-pre-wrap', latest.offTopic && 'text-book-muted italic')}>
                       {latest.text}
                       {!latest.final && <span className="ml-0.5 inline-block h-[1em] w-1 translate-y-0.5 animate-pulse bg-book-ink/60 motion-reduce:animate-none" aria-hidden="true" />}

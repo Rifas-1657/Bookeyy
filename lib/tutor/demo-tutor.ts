@@ -187,6 +187,12 @@ function offTopicReply(language: PreferredLanguage, courseTitle: string, pageTit
   return `Sorry, indha demo tutor ${courseTitle} course-ku mattum thaan answer pannum. Cricket score, news maari vishayangalukku help panna mudiyaadhu. "${pageTitle}" pathi edhavadhu kelunga!`
 }
 
+/** R3: the explanation style the (local) teaching-style bandit picked for this answer. */
+export interface AnswerStyle {
+  style: 'analogy-first' | 'step-by-step' | 'example-first' | 'visual-first'
+  depth: 'simpler' | 'standard' | 'deeper'
+}
+
 interface AnswerInput {
   question: string
   courseId: LearningCourseId
@@ -194,9 +200,10 @@ interface AnswerInput {
   page: BookLessonPage
   pageIndex: number
   language: PreferredLanguage
+  style?: AnswerStyle
 }
 
-export function answerQuestion({ question, courseId, courseTitle, page, pageIndex, language }: AnswerInput): TutorAnswer {
+export function answerQuestion({ question, courseId, courseTitle, page, pageIndex, language, style }: AnswerInput): TutorAnswer {
   const intent = classifyQuestion(question, courseId)
   if (intent === 'off-topic') {
     return { intent, text: offTopicReply(language, courseTitle, page.title), sources: [] }
@@ -209,15 +216,35 @@ export function answerQuestion({ question, courseId, courseTitle, page, pageInde
     case 'quiz':
       return { intent, text: pageQuiz(page, language), sources }
     case 'simpler':
-      return { intent, text: simplerExplanation(page, language), sources }
+      return { intent, ...styledSimpler(page, language, kit, style), sources }
     case 'another-example':
       return { intent, text: kit.example[0], code: kit.example[1], sources }
     case 'harder':
       return { intent, text: `Sari, konjam level up pannalaam. ${kit.harder[0]}`, code: kit.harder[1], sources }
     case 'try':
       return { intent, text: kit.practice[0], code: kit.practice[1], sources }
-    default:
+    default: {
+      if (style?.depth === 'deeper') return { intent, text: `${kit.explain}\n\n${kit.harder[0]}`, code: kit.harder[1], diagram: kit.diagram, sources }
+      if (style?.style === 'example-first') return { intent, text: `${kit.example[0]}\n\n${kit.explain}`, code: kit.example[1], sources }
       return { intent, text: kit.explain, diagram: kit.diagram, sources }
+    }
+  }
+}
+
+/** "Explain simpler" in the style the learner model picked (a different angle each time). */
+function styledSimpler(page: BookLessonPage, language: PreferredLanguage, kit: PageKit, style?: AnswerStyle): Pick<TutorAnswer, 'text' | 'code' | 'diagram'> {
+  const en = language === 'english'
+  switch (style?.style) {
+    case 'example-first':
+      return { text: `${en ? 'Let me show you instead:' : 'Oru example paarunga:'} ${kit.example[0]}`, code: kit.example[1] }
+    case 'step-by-step': {
+      const steps = (page.paragraphs[0] ?? page.title).split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 3)
+      return { text: [en ? 'Step by step:' : 'Step by step-a paakalaam:', ...steps.map((s, i) => `${i + 1}. ${s}`)].join('\n') }
+    }
+    case 'visual-first':
+      return { text: en ? 'Picture it like this diagram:' : 'Indha diagram maari yosinga:', diagram: kit.diagram }
+    default:
+      return { text: simplerExplanation(page, language) }
   }
 }
 

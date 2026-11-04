@@ -75,7 +75,8 @@ class FSRSCard:
     def review(self, rating: Rating) -> "FSRSCard":
         """Apply one review and return updated card (immutable update pattern)."""
         r = _RATING_TO_INT[rating]
-        new_difficulty = _update_difficulty(self.difficulty, r)
+        new_difficulty = (_initial_difficulty(r) if self.review_count == 0
+                          else _update_difficulty(self.difficulty, r))
         retrievability = self.retrievability
 
         if self.review_count == 0:
@@ -130,13 +131,19 @@ def _initial_stability(rating: int) -> float:
     return FSRS_W[rating - 1]
 
 
+def _initial_difficulty(rating: int) -> float:
+    # D0(G) = w4 - (G - 3) * w5
+    return max(1.0, min(10.0, FSRS_W[4] - (rating - 3) * FSRS_W[5]))
+
+
 def _update_difficulty(d: float, rating: int) -> float:
-    return d - FSRS_W[4] * (rating - 3) + FSRS_W[5] * (10 - d) * (rating - 1) / 9
+    # D' = w7 * D0(3) + (1 - w7) * (D - w6 * (G - 3))   (mean reversion toward D0(good))
+    return FSRS_W[7] * _initial_difficulty(3) + (1 - FSRS_W[7]) * (d - FSRS_W[6] * (rating - 3))
 
 
 def _recall_stability(d: float, s: float, r: float, rating: int) -> float:
-    return s * (
-        math.exp(FSRS_W[8])
+    # S' = S * (e^w8 * (11 - D) * S^-w9 * (e^(w10 (1 - R)) - 1) * hard/easy + 1)  — never shrinks on success
+    return s * (1 + math.exp(FSRS_W[8])
         * (11 - d)
         * math.pow(s, -FSRS_W[9])
         * (math.exp((1 - r) * FSRS_W[10]) - 1)

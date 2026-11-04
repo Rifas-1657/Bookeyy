@@ -6,6 +6,8 @@ import { useBookClient, useBookEvent } from '@/lib/book-client/react'
 import type { ServerEventPayloads } from '@/lib/contracts/book-events'
 import { physicalLineFor, type DemoRunResult, type DemoVariable } from '@/lib/runner'
 import { storageKeys, useLocalStorage } from '@/lib/storage'
+import { recordEvidence } from '@/lib/learning'
+import type { QuizPage } from '@/lib/learning/model'
 import type { CodeExample, LessonPageId } from '@/types/book'
 
 export type LabStatus = 'ready' | 'running' | 'awaiting-input' | 'done' | 'error'
@@ -162,7 +164,7 @@ function toDemoResult({ stdout, stderr, status, durationMs, trace }: RunResultPa
   }
 }
 
-export function useCodeLab(pageId: LessonPageId, example: CodeExample, courseId: string) {
+export function useCodeLab(pageId: LessonPageId, example: CodeExample, courseId: string, page?: QuizPage) {
   const reducedMotion = useReducedMotion()
   const client = useBookClient()
   const [state, dispatch] = useReducer(reducer, null, () => ({
@@ -177,6 +179,8 @@ export function useCodeLab(pageId: LessonPageId, example: CodeExample, courseId:
 
   useBookEvent('run_result', ({ payload }) => {
     if (payload.codeId !== state.pendingCodeId) return
+    // R3 learner model: a run that works (or errors) is evidence about this page's concepts.
+    if (page && state.pendingKind === 'run') recordEvidence(courseId, page, 'code_run', { correct: payload.status === 'success' })
     dispatch({ type: 'result', codeId: payload.codeId, result: toDemoResult(payload), inputs: payload.trace?.stdin ?? state.inputs })
   })
 

@@ -14,7 +14,7 @@ export default function ProgressPage() {
   return (
     <WorkspacePage
       title="Progress"
-      description="Long-term trends across chapters, practice, and streaks. Every number here comes from the demo seed, not a real learner."
+      description="Long-term trends across chapters, practice, and streaks. Chapter mastery comes from your own learner model (quizzes, questions, code runs); the other panels are demo data."
       aside={
         <BookeyBadge tone="neutral" icon={<Info />}>
           Demo data

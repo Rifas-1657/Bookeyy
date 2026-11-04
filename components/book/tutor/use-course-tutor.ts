@@ -34,8 +34,8 @@ export interface CourseTutor {
   dismissLatest: () => void
 }
 
-/** What a lesson command asked the tutor for (R1); plain questions have no kind. */
-export type AskKind = 'quiz' | 'simpler'
+/** What a lesson command asked the tutor for; plain questions have no kind. ("quiz me" is the R3 graded quiz.) */
+export type AskKind = 'simpler'
 
 export interface AskOptions {
   /** Shown in the chat/card instead of the instruction sent to the tutor. */
@@ -188,7 +188,7 @@ export function useCourseTutor({
         sessionId: null,
         source,
         text: question,
-        context: { courseId, pageId: page.id, language },
+        context: { courseId, pageId: page.id, language, ...(options.kind ? { intent: options.kind } : {}) },
       })
       pending.current.set(questionId, {
         courseId,
