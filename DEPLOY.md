@@ -19,13 +19,14 @@
 cd backend
 # PowerShell: $env:DATABASE_URL = '...'; $env:DB_PGBOUNCER = 'true'
 export DATABASE_URL='postgresql+asyncpg://<user>:<password>@<pooler-host>:6543/postgres?ssl=require' DB_PGBOUNCER=true
-.venv/Scripts/python scripts/supabase_harden.py                          # closes Supabase's Data API over public tables
+.venv/Scripts/python scripts/supabase_harden.py                          # optional: revoke anon/authenticated grants
 .venv/Scripts/python scripts/create_admin.py --email you@example.com     # prompts for a password
 ```
 
-`supabase_harden.py` matters: Supabase publishes `public` tables through PostgREST to anyone holding
-the project's anon key, and Bookey's tables (including `users`) have no RLS until it is run. Re-run it
-after any migration that adds a table. Invite learners from the admin Members page
+This Supabase project has an `ensure_rls` event trigger, so every `public` table already has RLS on
+with no policies: the anon and authenticated roles read no rows through the Data API, and the backend
+(table owner) is unaffected. Those roles do still hold table grants, so `supabase_harden.py` is optional
+defence in depth that revokes them. Check `pg_tables.rowsecurity` if the project is ever recreated. Invite learners from the admin Members page
 (`POST /api/admin/members/invite`).
 
 The sections below are the general reference.
