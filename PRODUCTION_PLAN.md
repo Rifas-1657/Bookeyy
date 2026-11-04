@@ -198,7 +198,7 @@ for any subject, with nothing faked.
 | R3 Adaptive learning | learner model (mastery per concept from questions, quiz answers, code runs, re-listens); per-lesson quizzes graded automatically; contextual bandit picks explanation style/depth/analogy; FSRS review queue; tutor prompts use the learner model | ✅ done (BKT mastery per concept in `learner_concepts` + evidence log `learner_events`, migration 0008; graded quizzes from lesson items → verified LLM items → page-derived; 12-arm contextual Thompson bandit wired into tutor + "simpler"; FSRS review offer at lesson start + dashboard; real mastery on Progress; same model in localStorage for mock mode — `/api/me/learning/*`) |
 | R4 Offline intelligence | in-browser STT (Whisper via WebGPU/WASM) and TTS (Piper Tamil voices) after "Download for offline"; book-only offline tutor answering from the book's pages + build-time FAQ | planned |
 | R5 Project workspace | Chrome File System Access: learner picks a project folder; practicals read/write files there with explicit permission per folder (a web app cannot drive VS Code itself) | planned |
-| P3 Hosting | needs the owner's free accounts (Vercel/Cloudflare, Supabase or managed Postgres, Oracle/Render VM, Modal) | blocked on accounts |
+| P3 Hosting | Render (bookey-api, Singapore) + Vercel (bookey) + Supabase (Singapore: Postgres, pgvector, Storage) | deploying |
 | V3 Fine-tune | Kaggle notebooks ready (`tools/finetune/`) | blocked on Kaggle token |
 
 ## 6. Order of work
