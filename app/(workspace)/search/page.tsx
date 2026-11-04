@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Search' }
 
 export default function SearchPage() {
   return (
-    <WorkspacePage title="Search" description="Search every course, chapter, book page, and the notes you saved in this browser.">
+    <WorkspacePage title="Search" description="Search every course, chapter, book page, and your notes.">
       <div className="max-w-3xl">
         <Suspense
           fallback={

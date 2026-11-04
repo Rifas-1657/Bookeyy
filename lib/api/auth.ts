@@ -29,6 +29,7 @@ export interface AuthSession {
   userId: string
   role: UserRole
   displayName: string
+  email?: string
 }
 
 interface AuthResponse {
@@ -36,6 +37,7 @@ interface AuthResponse {
   user_id: string
   role: string
   display_name: string
+  email?: string
 }
 
 function readStored(storage: Storage): AuthSession | null {
@@ -91,6 +93,7 @@ function storeSession(data: AuthResponse, remember: boolean) {
     userId: data.user_id,
     role: data.role === 'admin' ? 'admin' : 'learner',
     displayName: data.display_name,
+    email: data.email,
   }
   try {
     clearStored()

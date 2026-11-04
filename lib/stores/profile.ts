@@ -2,8 +2,10 @@
 
 import { useCallback, useMemo } from 'react'
 import { storageKeys, useLocalStorage } from '@/lib/storage'
+import { useSession } from '@/lib/api/auth'
 import {
   defaultPersonalization,
+  usePersonalization,
   type AccessibilityPreferences,
   type ExplanationStyle,
   type Interest,
@@ -27,11 +29,11 @@ export const NAME_MAX = 60
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export const defaultProfile: LearnerProfile = {
-  displayName: 'Demo learner',
-  email: 'learner@bookey.example',
+  displayName: '',
+  email: '',
   avatar: null,
   language: defaultPersonalization.language,
-  interests: ['movies', 'cricket'],
+  interests: [],
   style: defaultPersonalization.style,
   pace: defaultPersonalization.pace,
   accessibility: { ...defaultPersonalization.accessibility },
@@ -73,7 +75,25 @@ export function getInitials(name: string) {
 
 export function useProfile() {
   const [raw, setRaw] = useLocalStorage<unknown>(storageKeys.profile, defaultProfile)
-  const profile = useMemo(() => sanitizeProfile(raw), [raw])
+  const session = useSession()
+  const { personalization, completed } = usePersonalization('python')
+  const profile = useMemo(() => {
+    const saved = sanitizeProfile(raw)
+    return {
+      ...saved,
+      displayName: session?.displayName || saved.displayName,
+      email: session?.email || saved.email,
+      ...(completed
+        ? {
+            language: personalization.language,
+            interests: personalization.interests,
+            style: personalization.style,
+            pace: personalization.pace,
+            accessibility: personalization.accessibility,
+          }
+        : {}),
+    }
+  }, [raw, session, personalization, completed])
   const save = useCallback((next: LearnerProfile) => setRaw(sanitizeProfile(next)), [setRaw])
   return { profile, save }
 }

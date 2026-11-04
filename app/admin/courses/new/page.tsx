@@ -1,8 +1,5 @@
-import type { Metadata } from 'next'
-import { NewCoursePage } from '@/components/admin/courses/course-editor-pages'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = { title: 'New course' }
-
-export default function AdminNewCoursePage() {
-  return <NewCoursePage />
+export default function Page() {
+  redirect('/admin/course-builder')
 }

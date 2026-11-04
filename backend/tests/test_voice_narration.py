@@ -30,7 +30,7 @@ def _fake_result(sentence: str, provider: str = "pocket_tts") -> TTSResult:
 async def _run_page(monkeypatch, provider: str = "pocket_tts") -> list[dict]:
     calls: list[str] = []
 
-    async def fake_synth(text, voice="", speed=1.0, lang="auto"):
+    async def fake_synth(text, voice="", speed=1.0, lang="auto", gender=""):
         calls.append(text)
         return _fake_result(text, provider)
 

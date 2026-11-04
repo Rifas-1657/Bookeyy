@@ -354,6 +354,7 @@ SERVER_EVENT_TYPES = frozenset([
 class StartPagePayload(BaseModel):
     courseId: str
     pageId: str
+    gender: str = ""   # tutor voice the learner picked
 
 
 class PausePayload(BaseModel):

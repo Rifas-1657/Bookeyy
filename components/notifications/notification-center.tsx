@@ -22,7 +22,7 @@ const CATEGORY_ICON: Record<InboxCategory, React.ReactNode> = {
 
 export function NotificationCenter() {
   const hydrated = useHydrated()
-  const { items, unreadCount, setRead, markAllRead, remove, restoreDemo } = useNotificationCenter()
+  const { items, unreadCount, setRead, markAllRead, remove } = useNotificationCenter()
   const [filter, setFilter] = useState<Filter>('all')
 
   const visible = filter === 'all' ? items : items.filter((item) => item.category === filter)
@@ -91,14 +91,6 @@ export function NotificationCenter() {
           icon={<BellOff />}
           title={items.length === 0 ? 'No notifications' : 'Nothing in this category'}
           description={items.length === 0 ? 'Nothing here right now.' : 'Try another category.'}
-          action={
-            items.length === 0 ? (
-              <BookeyButton size="sm" variant="outline" onClick={restoreDemo}>
-                <RotateCcw aria-hidden="true" />
-                Restore notifications
-              </BookeyButton>
-            ) : undefined
-          }
         />
       ) : (
         <ul className="mt-4 divide-y divide-border">

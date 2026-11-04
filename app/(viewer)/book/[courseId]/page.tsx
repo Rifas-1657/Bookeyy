@@ -47,7 +47,7 @@ export default async function BookReaderPage({ params, searchParams }: BookPageP
       />
     )
   }
-  if (course.id === 'python' && process.env.NEXT_PUBLIC_BOOKEY_API_URL) return <PersonalBookGate />
+  if (course.id === 'python' && process.env.NEXT_PUBLIC_BOOKEY_API_URL) return <PersonalBookGate search={query.chapter ? `?chapter=${query.chapter}${query.page ? `&page=${query.page}` : ''}` : ''} />
   const pages = await loadBookPages(course.id)
 
   return (

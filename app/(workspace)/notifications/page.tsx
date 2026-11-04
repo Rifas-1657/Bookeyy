@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Notifications' }
 
 export default function NotificationsPage() {
   return (
-    <WorkspacePage title="Notifications" description="Learning nudges, book updates, and system messages. Stored here demo.">
+    <WorkspacePage title="Notifications" description="Learning nudges, book updates, and system messages. ">
       <NotificationCenter />
     </WorkspacePage>
   )

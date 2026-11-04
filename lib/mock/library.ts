@@ -69,7 +69,7 @@ export function describePage({ courseId, chapter, page }: PageRef) {
   const course = getLearningCourse(courseId)
   const chapterTitle = course?.chapters.find((entry) => entry.number === chapter)?.title
   return {
-    courseTitle: course?.title ?? 'Unknown book',
+    courseTitle: course?.title ?? 'Your book',
     location: `Chapter ${chapter}${chapterTitle ? ` · ${chapterTitle}` : ''} · Page ${page}`,
   }
 }

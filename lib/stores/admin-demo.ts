@@ -80,9 +80,9 @@ export const useAdminDemo = create<AdminDemoState>()(
       loadLive: async () => {
         if (!isBackendConfigured()) return
         const [members, courses, overview] = await Promise.all([
-          apiJson<ServerMember[]>('/admin/members'),
-          apiJson<ServerCourse[]>('/admin/courses'),
-          apiJson<AdminOverview>('/admin/members/overview'),
+          apiJson<ServerMember[]>('/api/admin/members'),
+          apiJson<ServerCourse[]>('/api/admin/courses'),
+          apiJson<AdminOverview>('/api/admin/members/overview'),
         ])
         set({
           overview,
@@ -107,7 +107,7 @@ export const useAdminDemo = create<AdminDemoState>()(
               language: c.language,
               level: c.level as AdminCourse['level'],
               coverColor: c.cover?.base ?? '#2A2117',
-              chapters: [],
+              chapters: Array.from({ length: c.chapter_count }, (_, i) => ({ id: String(i + 1), title: "", pages: 0 })),
               status: c.available ? ('published' as const) : ('draft' as const),
               updatedAt: c.created_at,
             })),
@@ -146,7 +146,7 @@ export const useAdminDemo = create<AdminDemoState>()(
         if (isBackendConfigured()) {
           const course = get().courses.find((c) => c.id === id)
           const action = course?.status === 'published' ? 'unpublish' : 'publish'
-          void apiJson(`/admin/courses/${encodeURIComponent(id)}/${action}`, { method: 'POST' }).then(() => get().loadLive())
+          void apiJson(`/api/admin/courses/${encodeURIComponent(id)}/${action}`, { method: 'POST' }).then(() => get().loadLive())
           return
         }
         set((state) => ({

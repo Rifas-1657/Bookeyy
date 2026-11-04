@@ -14,7 +14,7 @@ interface ReadingHistoryProps {
 }
 
 export function ReadingHistory({ limit, onViewAll }: ReadingHistoryProps) {
-  const { history, clear, restoreDemo } = useReadingHistory()
+  const { history, clear } = useReadingHistory()
   const shown = limit ? history.slice(0, limit) : history
 
   return (
@@ -40,12 +40,6 @@ export function ReadingHistory({ limit, onViewAll }: ReadingHistoryProps) {
           icon={<History />}
           title="No reading history"
           description="Sessions you read will appear here so you can retrace your steps."
-          extra={
-            <BookeyButton variant="outline" size="sm" onClick={restoreDemo}>
-              <RotateCcw aria-hidden="true" />
-              Restore history
-            </BookeyButton>
-          }
         />
       ) : (
         <ol className="relative flex flex-col gap-1 border-l border-border pl-5">

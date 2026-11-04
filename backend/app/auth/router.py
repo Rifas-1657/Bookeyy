@@ -78,6 +78,7 @@ class AuthResponse(BaseModel):
     user_id: str
     role: str
     display_name: str
+    email: str = ""
 
 
 class PasswordResetRequest(BaseModel):
@@ -158,6 +159,7 @@ async def signup(
         user_id=user.id,
         role=user.role,
         display_name=user.display_name,
+        email=user.email,
     )
 
 
@@ -195,6 +197,7 @@ async def login(
         user_id=user.id,
         role=user.role,
         display_name=user.display_name,
+        email=user.email,
     )
 
 
@@ -257,6 +260,7 @@ async def refresh(
         user_id=user.id,
         role=user.role,
         display_name=user.display_name,
+        email=user.email,
     )
 
 

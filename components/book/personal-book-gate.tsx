@@ -15,7 +15,7 @@ interface PersonalBook {
 }
 
 /** `/book/python` is the template: every learner reads their own copy, or takes the survey first. */
-export function PersonalBookGate() {
+export function PersonalBookGate({ search = '' }: { search?: string }) {
   const router = useRouter()
   const [writing, setWriting] = useState<number | null>(null)
 
@@ -27,7 +27,7 @@ export function PersonalBookGate() {
       try {
         const book = await apiJson<PersonalBook>('/api/books/personal')
         if (stopped) return
-        if (book.ready && book.courseId) return router.replace(`/book/${book.courseId}`)
+        if (book.ready && book.courseId) return router.replace(`/book/${book.courseId}${search}`)
         if (!book.exists || book.status === 'failed') return router.replace('/courses/python/survey')
         setWriting(book.progress ?? 0)
         timer = window.setTimeout(check, POLL_MS)
@@ -41,7 +41,7 @@ export function PersonalBookGate() {
       stopped = true
       window.clearTimeout(timer)
     }
-  }, [router])
+  }, [router, search])
 
   return (
     <div role="status" aria-live="polite" className="grid min-h-dvh place-items-center text-sm text-muted-foreground">

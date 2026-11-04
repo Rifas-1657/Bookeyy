@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { notify } from '@/components/ui-kit/toast'
 import { isBackendConfigured } from '@/lib/api/auth'
 import { findPageIndex, pageInChapter } from '@/lib/mock/book-pages'
+import { warmNarration } from '@/lib/narration/warm'
 import type { LearningChapter, LearningCourseId } from '@/lib/mock/learning'
 import type { LibraryBookmark, LibraryNote, PageRef } from '@/lib/mock/library'
 import { samePage, useBookmarks, useNotes } from '@/lib/stores/library'
@@ -125,6 +126,12 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   const savedIndex = pages.findIndex((entry) => entry.id === savedPageId)
   const index = chosenIndex ?? (hydrated ? Math.max(savedIndex, 0) : null)
   const page = index !== null ? pages[index] : undefined
+  const nextPageId = index !== null ? pages[index + 1]?.id : undefined
+
+  useEffect(() => {
+    if (page) warmNarration(course.id, page.id)
+    if (nextPageId) warmNarration(course.id, nextPageId)
+  }, [course.id, page?.id, nextPageId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (hydrated && page) setLastPage(course.id, page.id)

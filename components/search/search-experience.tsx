@@ -2,7 +2,8 @@
 
 import { Search, X } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { apiJson, isBackendConfigured } from '@/lib/api/auth'
 import { useNotes, useRecentSearches } from '@/lib/stores/library'
 import {
   MAX_QUERY_LENGTH,
@@ -11,6 +12,7 @@ import {
   searchDocs,
   tokenize,
   type SearchCategory,
+  type SearchDoc,
   type SearchResult,
 } from '@/lib/search'
 import { cn } from '@/lib/utils'
@@ -48,7 +50,40 @@ export function SearchExperience() {
 
   const { notes } = useNotes()
   const recent = useRecentSearches()
-  const docs = useMemo(() => buildSearchIndex(notes), [notes])
+  const [serverDocs, setServerDocs] = useState<SearchDoc[]>([])
+  const docs = useMemo(() => [...buildSearchIndex(notes), ...serverDocs], [notes, serverDocs])
+
+  useEffect(() => {
+    const trimmed = deferredQuery.trim()
+    if (!isBackendConfigured() || trimmed.length < 2) return setServerDocs([])
+    let stale = false
+    const timer = window.setTimeout(() => {
+      apiJson<{ course_id: string; page_id: string; chapter_number: number; title: string; excerpt: string }[]>(
+        `/search?q=${encodeURIComponent(trimmed)}`,
+        { headers: { accept: 'application/json' } },
+      )
+        .then((rows) => {
+          if (stale) return
+          setServerDocs(
+            // `python` is the template; learners read their own copy of it.
+            rows.filter((row) => row.course_id !== 'python').map((row) => ({
+              id: `page_${row.page_id}`,
+              category: 'page' as const,
+              title: row.title,
+              meta: `Chapter ${row.chapter_number}`,
+              body: `${row.title} ${row.excerpt.replace(/<[^>]+>/g, "")} ${trimmed}`,
+              tags: [],
+              href: `/book/${row.course_id}?chapter=${row.chapter_number}`,
+            })),
+          )
+        })
+        .catch(() => {})
+    }, 250)
+    return () => {
+      stale = true
+      window.clearTimeout(timer)
+    }
+  }, [deferredQuery])
 
   const outcome = useMemo<Outcome>(() => {
     const trimmed = deferredQuery.trim()

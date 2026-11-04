@@ -265,6 +265,7 @@ class _NarrationState:
     word_index: int = 0
     paused: bool = False
     speed: float = 1.0
+    gender: str = ""
     task: Optional[asyncio.Task] = None
 
 
@@ -311,6 +312,7 @@ class MockBookService:
         self._audio_started: dict[str, float] = {}
         # Every task spawned for this connection; all cancelled in dispose()
         self._tasks: set[asyncio.Task] = set()
+        self._gender = ""
         # Serialises start_page / seek so two narration loops never run at once
         self._page_lock = asyncio.Lock()
         self._disposed = False
@@ -413,7 +415,8 @@ class MockBookService:
             except (asyncio.CancelledError, Exception):
                 pass
 
-    async def handle_start_page(self, course_id: str, page_id: str) -> None:
+    async def handle_start_page(self, course_id: str, page_id: str, gender: str = "") -> None:
+        self._gender = gender
         async with self._page_lock:
             await self._start_page_locked(course_id, page_id)
 
@@ -575,7 +578,8 @@ class MockBookService:
         """
         Speak the page sentence by sentence. Each sentence goes out as ONE playable
         audio_chunk (with display-word timings), then its words are paced by those timings
-        so server cues line up with the voice. One sentence of lookahead hides synthesis time.
+        so server cues line up with the voice. Two sentences of lookahead hide synthesis time
+        (a cold Edge request takes 4-6 s, about as long as a sentence plays).
         """
         from app.voice.pipeline import build_audio_chunk_payloads, split_sentences, synthesize_segment
 
@@ -584,13 +588,15 @@ class MockBookService:
             return
 
         def synth(text: str) -> asyncio.Task:
-            return asyncio.create_task(synthesize_segment(text, speed=state.speed, lang="auto"))
+            return asyncio.create_task(synthesize_segment(text, speed=state.speed, lang="auto",
+                                                          gender=self._gender))
 
-        pending: Optional[asyncio.Task] = synth(sentences[0][0])
+        pending = [synth(t) for t, _ in sentences[:2]]
         try:
             for k, (text, offset) in enumerate(sentences):
-                result = await pending
-                pending = synth(sentences[k + 1][0]) if k + 1 < len(sentences) else None
+                result = await pending.pop(0)
+                if k + 2 < len(sentences):
+                    pending.append(synth(sentences[k + 2][0]))
                 n_words = len(text.split())
                 first = max(offset, state.word_index)
 
@@ -619,8 +625,8 @@ class MockBookService:
                 # Let the tail of the sentence finish before pacing the next one.
                 await self._wait_ms(state, float(result.duration_ms) - clock_ms)
         finally:
-            if pending is not None:
-                pending.cancel()
+            for task in pending:
+                task.cancel()
 
     async def handle_pause(self, session_id: str) -> None:
         if self._narration and self._narration.session_id == session_id:

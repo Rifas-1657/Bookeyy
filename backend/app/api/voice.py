@@ -14,6 +14,7 @@ Endpoints:
 """
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 from typing import Annotated
@@ -89,6 +90,37 @@ class STTResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # TTS: Text-to-Speech
 # ---------------------------------------------------------------------------
+
+class WarmRequest(BaseModel):
+    courseId: str
+    pageId: str
+    gender: str = ""
+
+
+_warming: set[asyncio.Task] = set()
+
+
+@router.post("/warm", status_code=202, summary="Prepare a page's first sentences before Play")
+@limiter.limit(voice_limit)
+async def warm_page(request: Request, req: WarmRequest, user: User = Depends(get_current_user)) -> dict:
+    """A cold synthesis takes 4-6 s. Doing it while the learner reads the page makes Play instant."""
+    from app.books.access import user_can_view_course
+    from app.db.database import AsyncSessionLocal
+    from app.db.models import Page
+    from app.voice.pipeline import split_sentences, synthesize_segment
+
+    if not await user_can_view_course(req.courseId, user.id):
+        raise HTTPException(status_code=404, detail="Page not found")
+    async with AsyncSessionLocal() as db:
+        page = await db.get(Page, req.pageId)
+    if page is None or page.course_id != req.courseId:
+        raise HTTPException(status_code=404, detail="Page not found")
+    for text, _ in split_sentences(page.narration_text)[:2]:
+        task = asyncio.create_task(synthesize_segment(text, lang="auto", gender=req.gender))
+        _warming.add(task)
+        task.add_done_callback(_warming.discard)
+    return {"status": "warming"}
+
 
 @router.post("/tts", summary="Synthesize speech from lesson narration text")
 @limiter.limit(voice_limit)

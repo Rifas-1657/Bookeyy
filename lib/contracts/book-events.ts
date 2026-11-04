@@ -177,7 +177,7 @@ export type ServerEventOf<T extends ServerEventType> = Extract<BookServerEvent, 
 /* -------------------------------------------------------------------------- */
 
 export interface ClientEventPayloads {
-  start_page: { courseId: string; pageId: string }
+  start_page: { courseId: string; pageId: string; gender?: string }
   pause: { sessionId: string }
   resume: { sessionId: string }
   seek: { sessionId: string; segmentId: string; wordIndex: number }

@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Library' }
 
 export default function LibraryPage() {
   return (
-    <WorkspacePage title="Library" description="Your books, saved notes, bookmarks, and reading history. Saved in this browser only.">
+    <WorkspacePage title="Library" description="Your books, saved notes, bookmarks, and reading history.">
       <Suspense fallback={<LibrarySkeleton />}>
         <LibraryExperience />
       </Suspense>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Copy, Eye, EyeOff, ExternalLink, MoreHorizontal, PencilLine, Plus, Search } from 'lucide-react'
+import { Copy, Eye, EyeOff, ExternalLink, MoreHorizontal, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
@@ -182,7 +182,7 @@ function CourseRow({ course }: { course: AdminCourse }) {
           <span aria-hidden="true" className="h-9 w-7 shrink-0 rounded-md shadow-sm" style={{ background: course.coverColor }} />
           <div className="min-w-0">
             <Link
-              href={`/admin/courses/${course.id}/edit`}
+              href={`/courses/${course.id}`}
               className="font-medium outline-none hover:text-primary hover:underline focus-visible:ring-4 focus-visible:ring-ring/30"
             >
               {course.title}
@@ -201,10 +201,6 @@ function CourseRow({ course }: { course: AdminCourse }) {
       </td>
       <td className={`${tdClass} text-right`}>
         <div className="flex items-center justify-end gap-1">
-          <BookeyButton variant="ghost" size="sm" nativeButton={false} render={<Link href={`/admin/courses/${course.id}/edit`} />}>
-            <PencilLine aria-hidden="true" />
-            Edit<span className="sr-only"> {course.title}</span>
-          </BookeyButton>
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label={`More actions for ${course.title}`}

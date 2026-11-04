@@ -11,7 +11,6 @@ export const ADMIN_NAV = [
   { href: '/admin/course-builder', label: 'Course builder', icon: WandSparkles },
   { href: '/admin/knowledge-base', label: 'Knowledge base', icon: FileStack },
   { href: '/admin/members', label: 'Members', icon: Users },
-  { href: '/admin/tutor-settings', label: 'Tutor settings', icon: SlidersHorizontal },
 ] as const
 
 export function isActive(pathname: string, href: string) {

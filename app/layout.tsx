@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next'
+import { BackendWake } from '@/components/backend-wake'
 import type { Metadata, Viewport } from 'next'
 import { Bricolage_Grotesque, Inter, JetBrains_Mono } from 'next/font/google'
 import { AppProviders } from '@/components/providers'
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body>
+        <BackendWake />
         <AppProviders>{children}</AppProviders>
         {process.env.VERCEL ? <Analytics /> : null}
       </body>

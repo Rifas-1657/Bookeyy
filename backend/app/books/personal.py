@@ -238,8 +238,13 @@ async def latest(user: User) -> dict | None:
     written = next((s["detail"] for s in job.steps if s["key"] == "write"), "")
     m = re.match(r"(\d+) of (\d+)", written or "")
     progress = 100 if ready else 5 + round(90 * int(m[1]) / int(m[2])) if m else 3
+    async with AsyncSessionLocal() as db:
+        chapters = (await db.execute(select(Chapter).where(Chapter.course_id == book.course_id)
+                                     .order_by(Chapter.number))).scalars().all()
     return {"jobId": job.id, "courseId": book.course_id, "status": job.status, "progress": progress,
-            "steps": job.steps, "error": job.error, "ready": ready}
+            "steps": job.steps, "error": job.error, "ready": ready, "title": job.title,
+            "chapters": [{"number": c.number, "title": c.title, "pages": c.page_count, "summary": c.summary}
+                         for c in chapters]}
 
 
 async def build(job_id: str, user_id: str) -> None:

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, BookOpen, FileStack, Layers, SlidersHorizontal, UserCheck, Users } from 'lucide-react'
+import { ArrowRight, BookOpen, FileStack, Layers, UserCheck, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useAdminDemo } from '@/lib/stores/admin-demo'
 import { AdminPageHeader, AdminPanel } from '../admin-ui'
@@ -8,7 +8,7 @@ import { AdminPageHeader, AdminPanel } from '../admin-ui'
 const QUICK_LINKS = [
   { href: '/admin/course-builder', label: 'Build a course', description: 'Turn papers, repos and links into a book.', icon: Layers },
   { href: '/admin/knowledge-base', label: 'Manage sources', description: 'Upload documents to ground your courses.', icon: FileStack },
-  { href: '/admin/tutor-settings', label: 'Tutor settings', description: 'Narration and explanation defaults.', icon: SlidersHorizontal },
+  { href: '/admin/members', label: 'See members', description: 'Everyone who has signed up.', icon: Users },
 ]
 
 export function AdminOverview() {

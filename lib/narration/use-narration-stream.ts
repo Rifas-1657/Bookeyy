@@ -477,7 +477,7 @@ export function useNarrationStream({
       }
       if (current.sessionId && current.playing) client.pause({ sessionId: current.sessionId })
       link.current = { key: sessionKey, sessionId: null, playing: false }
-      client.startPage({ courseId, pageId })
+      client.startPage({ courseId, pageId, gender: voiceGender })
       return
     }
 

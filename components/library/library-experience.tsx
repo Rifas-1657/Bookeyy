@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useRef, useState } from 'react'
 import { getChapterProgress, getCoursePosition, learningCourses } from '@/lib/mock/learning'
 import { samePage, useBookmarks, useNotes, useReadingHistory } from '@/lib/stores/library'
+import { useLiveCourses, usePersonalBook } from '@/lib/stores/progress'
 import { cn } from '@/lib/utils'
 import { BookmarkList } from './bookmark-list'
 import { CompletedList, type CompletedGroup } from './completed-list'
@@ -28,16 +29,24 @@ function parseTab(value: string | null): TabId {
   return tabs.some((tab) => tab.id === value) ? (value as TabId) : 'all'
 }
 
-const startedBooks = learningCourses.filter((course) => getCoursePosition(course).started)
-
-const completedGroups: CompletedGroup[] = learningCourses
-  .map((course) => ({
-    course,
-    chapters: getChapterProgress(course).filter((entry) => entry.pagesRead === entry.chapter.pages),
-  }))
-  .filter((group) => group.chapters.length > 0)
+/** Books on the learner's shelf: started ones, plus their own Python book as soon as it exists. */
+function useShelf() {
+  const courses = useLiveCourses(learningCourses)
+  const personal = usePersonalBook()
+  return useMemo(() => {
+    const startedBooks = courses.filter((course) => getCoursePosition(course).started || (course.id === 'python' && personal))
+    const completedGroups: CompletedGroup[] = courses
+      .map((course) => ({
+        course,
+        chapters: getChapterProgress(course).filter((entry) => entry.pagesRead === entry.chapter.pages),
+      }))
+      .filter((group) => group.chapters.length > 0)
+    return { startedBooks, completedGroups }
+  }, [courses, personal])
+}
 
 export function LibraryExperience() {
+  const { startedBooks, completedGroups } = useShelf()
   const router = useRouter()
   const params = useSearchParams()
   const urlTab = parseTab(params.get('tab'))
@@ -145,6 +154,7 @@ export function LibraryExperience() {
 type BookmarkState = ReturnType<typeof useBookmarks>
 
 function BookGrid({ bookmarks, onToggle }: { bookmarks: BookmarkState['bookmarks']; onToggle: BookmarkState['toggle'] }) {
+  const { startedBooks } = useShelf()
   return (
     <section aria-labelledby="books-heading" className="flex flex-col gap-4">
       <SectionHeader id="books-heading" title="Your books" count={startedBooks.length} />
@@ -172,6 +182,7 @@ function BookGrid({ bookmarks, onToggle }: { bookmarks: BookmarkState['bookmarks
 }
 
 function RecentBooks() {
+  const { startedBooks } = useShelf()
   const { bookmarks, toggle } = useBookmarks()
   const recent = startedBooks.filter((course) => course.lastOpened)
 

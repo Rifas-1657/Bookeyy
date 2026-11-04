@@ -270,7 +270,7 @@ async def book_ws_handler(websocket: WebSocket) -> None:
 
             if etype == "start_page":
                 service.spawn(service.handle_start_page(
-                    course_id=p.courseId, page_id=p.pageId,
+                    course_id=p.courseId, page_id=p.pageId, gender=p.gender,
                 ))
             elif etype == "pause":
                 service.spawn(service.handle_pause(session_id=p.sessionId))

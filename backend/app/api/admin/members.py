@@ -59,7 +59,7 @@ async def overview(
     """Real platform figures for the admin overview."""
     week_ago = datetime.utcnow() - timedelta(days=7)
     learners = (await db.execute(select(func.count(User.id)).where(User.role == "learner"))).scalar_one()
-    joined = (await db.execute(select(func.count(User.id)).where(User.created_at >= week_ago))).scalar_one()
+    joined = (await db.execute(select(func.count(User.id)).where(User.role == "learner", User.created_at >= week_ago))).scalar_one()
     books = (await db.execute(select(func.count(LearnerBook.id)))).scalar_one()
     pages = (await db.execute(select(func.count(Progress.id)))).scalar_one()
     return {"learners": learners, "joinedThisWeek": joined, "books": books, "pagesRead": pages}

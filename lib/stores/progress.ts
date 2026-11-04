@@ -18,6 +18,27 @@ const remoteProgress = createRemoteResource<Record<string, number>>('/me/progres
   Object.fromEntries((raw as ServerProgressSummary[]).map((item) => [item.course_id, item.completed_pages])),
 )
 
+export interface PersonalBookSummary {
+  ready: boolean
+  courseId: string
+  title: string
+  chapters: LearningCourse['chapters']
+}
+
+/** The learner's own copy of the Python book (`/api/books/personal`). */
+const remotePersonal = createRemoteResource<PersonalBookSummary | null>('/api/books/personal', null, (raw) => {
+  const book = raw as Partial<PersonalBookSummary> & { exists: boolean }
+  return book.exists && book.ready ? (book as PersonalBookSummary) : null
+})
+
+export function refreshPersonalBook() {
+  void remotePersonal.load(true)
+}
+
+export function usePersonalBook() {
+  return useRemote(remotePersonal, LIVE).data
+}
+
 const completedThisSession = new Set<string>()
 
 /**
@@ -37,9 +58,17 @@ export function markPageComplete(courseId: string, pageId: string) {
 /** Courses with `completedPages` replaced by the learner's real progress when a backend is configured. */
 export function useLiveCourses<T extends LearningCourse>(courses: T[]): T[] {
   const { data } = useRemote(remoteProgress, LIVE)
+  const personal = usePersonalBook()
   return useMemo(
-    () => (LIVE ? courses.map((course) => ({ ...course, completedPages: data[course.id] ?? 0 })) : courses),
-    [courses, data],
+    () =>
+      LIVE
+        ? courses.map((course) => ({
+            ...course,
+            completedPages: data[course.id] ?? 0,
+            ...(course.id === 'python' && personal ? { title: personal.title, chapters: personal.chapters } : {}),
+          }))
+        : courses,
+    [courses, data, personal],
   )
 }
 

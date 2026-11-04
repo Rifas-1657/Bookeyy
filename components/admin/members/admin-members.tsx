@@ -18,7 +18,7 @@ export function AdminMembers() {
 
   async function deactivate(member: DemoMember) {
     try {
-      await apiJson(`/admin/members/${encodeURIComponent(member.id)}`, { method: 'DELETE' })
+      await apiJson(`/api/admin/members/${encodeURIComponent(member.id)}`, { method: 'DELETE' })
       await loadLive()
       notify.success(`${member.name} can no longer log in`)
     } catch (error) {
