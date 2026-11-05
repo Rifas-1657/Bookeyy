@@ -4,28 +4,25 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, MailCheck } from 'lucide-react'
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
+import { notify } from '@/components/ui-kit/toast'
+import { requestPasswordReset } from '@/lib/api/auth'
 import { AuthField } from './auth-field'
 import { AuthSubmit, AuthSwitch, authLinkClass } from './auth-submit'
 import { validateEmail } from './validation'
 
-const DEMO_DELAY_MS = 600
-
 export function ForgotPasswordForm() {
   const inputRef = useRef<HTMLInputElement>(null)
   const statusRef = useRef<HTMLDivElement>(null)
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string>()
   const [pending, setPending] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState<string>()
 
-  useEffect(() => () => clearTimeout(timer.current), [])
-
   useEffect(() => {
     if (submittedEmail) statusRef.current?.focus()
   }, [submittedEmail])
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (pending) return
     const nextError = validateEmail(email)
@@ -35,10 +32,13 @@ export function ForgotPasswordForm() {
       return
     }
     setPending(true)
-    timer.current = setTimeout(() => {
-      setPending(false)
+    try {
+      await requestPasswordReset(email.trim())
       setSubmittedEmail(email.trim())
-    }, DEMO_DELAY_MS)
+    } catch {
+      notify.error('Could not send the link', 'Try again in a moment.')
+    }
+    setPending(false)
   }
 
   function reset() {
@@ -60,10 +60,10 @@ export function ForgotPasswordForm() {
               <MailCheck aria-hidden="true" className="size-5" />
             </span>
             <div>
-              <p className="font-semibold text-book-ink">Demo only — password reset is not connected</p>
+              <p className="font-semibold text-book-ink">Check your email</p>
               <p className="mt-1 text-sm leading-relaxed text-book-ink/80">
-                In the real app, a reset link would go to <span className="font-medium break-all text-book-ink">{submittedEmail}</span>. No
-                email was sent.
+                If <span className="font-medium break-all text-book-ink">{submittedEmail}</span> has a Bookey account, a reset
+                link is on its way. Check your spam folder too.
               </p>
             </div>
           </div>

@@ -222,3 +222,22 @@ async def test_ws_ticket_authenticated(auth_http_client: AsyncClient):
     assert "ticket" in data
     assert data["expires_in"] == 30
     assert len(data["ticket"]) > 10
+
+
+async def test_password_reset_emails_a_working_link(http_client: AsyncClient, monkeypatch):
+    sent = {}
+
+    async def capture(to, name, raw_token):
+        sent.update(to=to, token=raw_token)
+
+    monkeypatch.setattr("app.auth.router.send_password_reset", capture)
+    email = "reset-me@example.com"
+    await http_client.post("/auth/signup", json={"email": email, "password": "old-Password-1", "display_name": "Reset"})
+    assert (await http_client.post("/auth/password-reset/request", json={"email": email})).status_code == 200
+    assert sent["to"] == email
+
+    new = {"token": sent["token"], "new_password": "new-Password-2"}
+    assert (await http_client.post("/auth/password-reset/confirm", json=new)).status_code == 200
+    assert (await http_client.post("/auth/password-reset/confirm", json=new)).status_code == 400   # single use
+    login = await http_client.post("/auth/login", json={"email": email, "password": "new-Password-2"})
+    assert login.status_code == 200

@@ -129,6 +129,10 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "noreply@bookey.app"
+    # --- Email (app/auth/mailer.py) ---
+    brevo_api_key: str = ""
+    mail_from: str = "noreply@bookey.app"
+    public_app_url: str = "http://localhost:3000"
 
     # =========================================================
     # B2: Knowledge base

@@ -222,6 +222,19 @@ export async function signup(input: { email: string; password: string; displayNa
   storeSession((await res.json()) as AuthResponse, true)
 }
 
+export async function requestPasswordReset(email: string) {
+  const res = await send('/auth/password-reset/request', { method: 'POST', body: JSON.stringify({ email }) })
+  if (!res.ok) throw await errorFrom(res)
+}
+
+export async function confirmPasswordReset(token: string, newPassword: string) {
+  const res = await send('/auth/password-reset/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token, new_password: newPassword }),
+  })
+  if (!res.ok) throw await errorFrom(res)
+}
+
 export async function logout() {
   try {
     await send('/auth/logout', { method: 'POST' })

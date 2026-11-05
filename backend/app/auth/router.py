@@ -5,7 +5,7 @@ POST /auth/signup    — open learner signup
 POST /auth/login     — email + password → access + refresh cookies
 POST /auth/logout    — clear cookies
 POST /auth/refresh   — rotate refresh token → new access token
-POST /auth/password-reset/request  — request reset (token printed in dev, emailed in prod)
+POST /auth/password-reset/request  — request reset (emailed; see app/auth/mailer.py)
 POST /auth/password-reset/confirm  — confirm reset with token + new password
 
 Cookie strategy:
@@ -21,13 +21,14 @@ from __future__ import annotations
 import logging
 
 import jwt
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import service
 from app.auth.dependencies import _resolve_token, get_current_user
+from app.auth.mailer import send_password_reset
 from app.auth.service import (
     bump_token_version,
     token_version_matches,
@@ -269,6 +270,7 @@ async def refresh(
 async def request_password_reset(
     request: Request,
     body: PasswordResetRequest,
+    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     result = await db.execute(select(User).where(User.email == body.email))
@@ -280,12 +282,10 @@ async def request_password_reset(
 
     raw_token = await create_password_reset_token(db, user.id)
 
-    # TODO(SMTP): email `raw_token` to the user via settings.smtp_* — not implemented.
     # The raw token is NEVER logged (logs are routinely shipped/shared; a logged
-    # token is an account-takeover primitive). Until SMTP delivery exists, an admin
-    # must reset passwords out of band.
-    del raw_token
-    log.info("Password reset requested for user_id=%s (delivery: SMTP not implemented)", user.id)
+    # token is an account-takeover primitive).
+    background.add_task(send_password_reset, user.email, user.display_name, raw_token)
+    log.info("Password reset requested for user_id=%s", user.id)
 
     return MessageResponse(message="If that email exists, a reset link was sent.")
 
