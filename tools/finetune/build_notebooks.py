@@ -225,8 +225,9 @@ for name in ("train", "test"):
 BATCH, ACCUM = 2, 16                              # effective batch 32
 LR = 8e-5                                          # gentle: we adapt style, not relearn Tamil
 EPOCHS = 3
-SAVE_STEPS = 400
-SMOKE_TEST = True    # first run: 60 steps to check memory + audio quality, then set False
+SAVE_STEPS = 500
+MAX_STEPS = 2500     # about 6-7 h at 9 s/step: fits one 12 h Kaggle session with audio encoding
+SMOKE_TEST = False   # True: 60 steps to check memory + audio quality
 '''),
     code('''
 import subprocess, shlex
@@ -247,7 +248,7 @@ args = {
     "adam_beta1": 0.9, "adam_beta2": 0.99, "weight_decay": 0.01,
     "num_train_epochs": EPOCHS, "freeze_text_encoder": True,
     "dtype": "float16", "audio_encoder_per_device_batch_size": 8,
-    "eval_steps": SAVE_STEPS, "save_steps": SAVE_STEPS, "save_total_limit": 2, "logging_steps": 10,
+    "eval_steps": SAVE_STEPS, "save_steps": SAVE_STEPS, "save_total_limit": 1, "logging_steps": 10, "max_steps": MAX_STEPS,
     "output_dir": "/kaggle/working/parler_out", "overwrite_output_dir": False,
     "temporary_save_to_disk": "/kaggle/tmp/audio_codes", "save_to_disk": "/kaggle/tmp/encoded",
     "preprocessing_num_workers": 4, "dataloader_num_workers": 4, "group_by_length": True,
