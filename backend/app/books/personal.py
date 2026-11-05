@@ -219,8 +219,38 @@ async def start(user: User, base_course: str = BASE_COURSE) -> dict:
                            source_label="Your survey", visibility="private", ai_knowledge=False))
         await db.commit()
     from app.jobs import queue
-    await queue.enqueue(PERSONAL_KIND, {"jobId": job.id, "userId": user.id}, dedupe_key=runner.queue_key(job.id))
+    # Ahead of long "create a book" builds: a learner is watching this one.
+    await queue.enqueue(PERSONAL_KIND, {"jobId": job.id, "userId": user.id}, dedupe_key=runner.queue_key(job.id),
+                        priority=10)
     return {"jobId": job.id, "courseId": job.course_id, "status": "queued"}
+
+
+async def switch_language(user: User, language: str) -> dict:
+    """Swap the book's language in place: no LLM, a few seconds, reading progress kept.
+    The book is written in both languages; only the personal openings are left out."""
+    if language not in LANGUAGE_RULE:
+        raise PersonalBookError("Choose Tanglish or English.")
+    current = await latest(user)
+    if current is None or not current["ready"]:
+        raise PersonalBookError("Your book is not ready yet.", 409)
+    book = load_book()
+    async with AsyncSessionLocal() as db:
+        survey = (await db.execute(select(CourseSurvey).where(
+            CourseSurvey.user_id == user.id, CourseSurvey.course_id == BASE_COURSE))).scalar_one()
+        answers = {**survey.answers, "language": language}
+        survey.answers = answers
+        course = await db.get(Course, current["courseId"])
+        course.language = "Tanglish" if language == "tanglish" else "English"
+        course.tutor_style = ("Tanglish narration (Tamil + English technical terms)" if language == "tanglish"
+                              else "English narration")
+        for number, ch in enumerate(select_chapters(answers), start=1):
+            for i in range(len(ch[5])):
+                page = await db.get(Page, f"{course.id}-c{number}-p{i + 1}"[:80])
+                if page is not None:
+                    for field, value in page_fields(book[f"{ch[0]}.{i + 1}"], answers).items():
+                        setattr(page, field, value)
+        await db.commit()
+    return {"language": language, "courseId": current["courseId"]}
 
 
 async def latest(user: User) -> dict | None:
@@ -254,7 +284,7 @@ async def build(job_id: str, user_id: str) -> None:
         user = await db.get(User, user_id)
         survey = (await db.execute(select(CourseSurvey).where(
             CourseSurvey.user_id == user_id, CourseSurvey.course_id == BASE_COURSE))).scalar_one()
-        course_id, answers = job.course_id, dict(survey.answers)
+        course_id, answers, requested = job.course_id, dict(survey.answers), job.created_at
     name = (user.display_name or "friend").split()[0]
     book = load_book()
     chapters = select_chapters(answers)
@@ -266,7 +296,9 @@ async def build(job_id: str, user_id: str) -> None:
         _step(j, "write", "running", f"0 of {total} chapters")
     await runner._mutate(job_id, _begin)
 
-    deadline = time.monotonic() + TIME_BUDGET_S
+    # Time spent queued counts: when many learners start at once, later books skip the personal
+    # openings rather than make anyone wait past the 5 minutes they were promised.
+    deadline = time.monotonic() + TIME_BUDGET_S - (datetime.utcnow() - requested).total_seconds()
     personal: dict[int, list[dict]] = {}
     for done, chapter in enumerate(chapters, start=1):
         if time.monotonic() < deadline:

@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react'
 import { apiJson, isBackendConfigured } from '@/lib/api/auth'
+import { usePersonalBook } from '@/lib/stores/progress'
 import { storageKeys, useLocalStorage } from '@/lib/storage'
 import { createRemoteResource, useRemote } from './remote'
 
@@ -132,7 +133,8 @@ export function useSurveyCompleted(courseId: string) {
  */
 export function usePersonalization(courseId: string) {
   const { store, ready, save, reset } = useSurveyStore(courseId)
-  const record = store[courseId]
+  const ownCopy = usePersonalBook()?.courseId === courseId
+  const record = store[courseId] ?? (ownCopy ? store.python : undefined)
 
   const personalization: Personalization = record
     ? {

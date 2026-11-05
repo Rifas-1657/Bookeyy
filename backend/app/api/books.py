@@ -214,6 +214,15 @@ async def create_personal(user: User = Depends(get_current_user)) -> dict:
         raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
 
+@router.post("/personal/language")
+async def set_personal_language(body: dict = Body(...), user: User = Depends(get_current_user)) -> dict:
+    """Switch the learner's own book between Tanglish and English without rewriting it."""
+    try:
+        return await personal.switch_language(user, str(body.get("language") or ""))
+    except personal.PersonalBookError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+
+
 @router.get("/personal")
 async def get_personal(user: User = Depends(get_current_user)) -> dict:
     """Newest personal book and how far it has got; {"exists": false} before the first one."""

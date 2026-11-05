@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 
 from app.books import personal
 from app.db.database import AsyncSessionLocal
-from app.db.models import Chapter, CourseSurvey, Page, User
+from app.db.models import Chapter, Course, CourseSurvey, Page, User
 
 ANSWERS = {"level": "basics", "interests": ["cricket"], "style": "code", "language": "english",
            "pace": "fast", "goal": "data", "dailyMinutes": "20", "project": "A score tracker"}
@@ -80,6 +80,13 @@ async def test_book_is_built_whole_from_the_survey(app_client, monkeypatch):
     assert chapters == len(want)
     assert len(pages) == sum(len(c[5]) for c in want)
     assert all(p.narration_text.startswith("Think of your cricket scores.") for p in pages)
+
+    await personal.switch_language(user, "tanglish")
+    async with AsyncSessionLocal() as db:
+        first = await db.get(Page, f"{state['courseId']}-c1-p1")
+        course = await db.get(Course, state["courseId"])
+    assert first.narration_text == personal.load_book()["4.1"]["narration_tanglish"]
+    assert course.language == "Tanglish"
 
 
 @pytest.mark.asyncio

@@ -11,6 +11,7 @@ import { EMAIL_PATTERN, NAME_MAX, useProfile, type LearnerProfile } from '@/lib/
 import { useHydrated } from '@/lib/stores/personalization'
 import { cn } from '@/lib/utils'
 import { AvatarPicker } from './avatar-picker'
+import { BookLanguageSwitch } from './book-language-switch'
 import { RetakeSurvey } from './retake-survey'
 
 type Errors = Partial<Record<'displayName' | 'email', string>>
@@ -203,6 +204,7 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
             </div>
           </dl>
         )}
+        <BookLanguageSwitch />
         <RetakeSurvey initialCourse={initialCourse} />
       </FormSection>
 
