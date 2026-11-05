@@ -20,8 +20,9 @@ export function ResetPasswordForm() {
 
   // The token sits in the URL fragment; drop it from the address bar once read.
   useEffect(() => {
-    setToken(new URLSearchParams(window.location.hash.slice(1)).get('token') ?? '')
-    window.history.replaceState(null, '', window.location.pathname)
+    const fromLink = new URLSearchParams(window.location.hash.slice(1)).get('token')
+    setToken((current) => fromLink ?? current ?? '')
+    if (fromLink) window.history.replaceState(null, '', window.location.pathname)
   }, [])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
