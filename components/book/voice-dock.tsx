@@ -241,7 +241,7 @@ export function VoiceDock({
             aria-hidden="true"
             className={cn('size-1.5 rounded-full bg-book-amber/60', speaking && 'bg-book-orange motion-safe:animate-pulse')}
           />
-          <span>{stream.player.producesSound ? `${TUTOR_NAME} · voice` : 'Narration (timed text)'}</span>
+          <span>{stream.player.producesSound ? `${TUTOR_NAME} · voice` : TUTOR_NAME}</span>
           <span aria-hidden="true">·</span>
           <span>{streamingEnabled ? statusLabel[status] : 'Off in full view'}</span>
           {sentenceNumber && !completed && (

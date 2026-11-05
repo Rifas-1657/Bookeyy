@@ -6,7 +6,7 @@ import { AuthShowcase } from './auth-showcase'
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-[#FFFCFA] lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+    <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
       <AuthShowcase />
 
       <div className="flex min-h-dvh flex-col">

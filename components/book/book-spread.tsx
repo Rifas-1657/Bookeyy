@@ -93,7 +93,7 @@ function TextPage({
         className="mt-6 rounded-2xl border-l-4 border-book-orange bg-book-marker/15 px-4 py-3"
       >
         <p className="text-[0.7em] font-semibold tracking-wider text-book-deep uppercase">
-          {viewMode === 'guided' ? 'Narration · guided mode' : 'Narration'}
+          {viewMode === 'guided' ? 'Your tutor is ready' : 'Your tutor'}
         </p>
         <p lang="ta-Latn" className="mt-1 font-serif text-[1em] leading-relaxed italic">
           <NarrationText text={page.narrationText} narration={narration} />

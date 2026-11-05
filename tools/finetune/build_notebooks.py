@@ -192,7 +192,24 @@ speaks *like* native Tanglish speakers without copying anyone. Bookey then fixes
 '''),
     code('''
 !pip -q install "parler_tts[train] @ git+https://github.com/huggingface/parler-tts.git" accelerate jiwer
+!pip -q install -U "protobuf>=5.29,<7"   # parler pins an old protobuf that transformers cannot import
 !git clone -q https://github.com/huggingface/parler-tts.git /kaggle/working/parler-tts 2>/dev/null || true
+# Upstream indexes the optional metadata dataset list even when there is none.
+# pip also installs a copy of `training`, and that is the one the script imports.
+!find /kaggle/working/parler-tts /usr/local/lib -path '*training/data.py' -exec sed -i 's/metadata_dataset_names\[i\]/(metadata_dataset_names[i] if metadata_dataset_names else None)/' {} +
+# transformers' DacModel takes no `bandwidth` and returns codes without the leading chunk axis.
+from pathlib import Path as _P
+_run = _P("/kaggle/working/parler-tts/training/run_parler_tts_training.py")
+_src = _run.read_text()
+for _old, _new in (
+    ('if bandwidth is not None:',
+     'if bandwidth is not None and "bandwidth" in inspect.signature(audio_decoder.encode).parameters:'),
+    ('output["labels"] = labels.squeeze(0).transpose(1, 2)',
+     'output["labels"] = (labels if labels.dim() == 4 else labels.unsqueeze(0)).squeeze(0).transpose(1, 2)'),
+):
+    assert _old in _src, _old
+    _src = _src.replace(_old, _new)
+_run.write_text(_src)
 '''),
     code('''
 import glob, os, shutil
@@ -218,8 +235,8 @@ args = {
     "feature_extractor_name": BASE,
     "description_tokenizer_name": "google/flan-t5-large",
     "prompt_tokenizer_name": BASE,
-    "train_dataset_name": DATA_DIR, "train_split_name": "train",
-    "eval_dataset_name": DATA_DIR, "eval_split_name": "test",
+    "train_dataset_name": DATA_DIR, "train_dataset_config_name": "default", "train_split_name": "train",
+    "eval_dataset_name": DATA_DIR, "eval_dataset_config_name": "default", "eval_split_name": "test",
     "target_audio_column_name": "audio", "description_column_name": "description",
     "prompt_column_name": "text",
     "max_duration_in_seconds": 15, "min_duration_in_seconds": 2, "max_text_length": 400,
@@ -244,6 +261,7 @@ cli = " ".join(f"--{k} {shlex.quote(str(v).lower() if isinstance(v, bool) else s
 cmd = f"cd /kaggle/working/parler-tts && accelerate launch --mixed_precision fp16 training/run_parler_tts_training.py {cli}"
 print(cmd[:400], "...")
 !{cmd}
+assert os.path.isdir("/kaggle/working/parler_out"), "training failed: see the log above"
 '''),
     code('''
 # Listen: Bookey's two house voices, same sentence, base model vs fine-tuned.
@@ -300,8 +318,10 @@ learner sees. The merged model is converted to CTranslate2 int8 for faster-whisp
 '''),
     code('!pip -q install "transformers>=4.44,<4.53" "peft>=0.12" accelerate "datasets>=2.20,<4" jiwer evaluate soundfile librosa ctranslate2 && pip -q uninstall -y torchao'),
     code('''
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"   # two GPUs through DataParallel were slower here
 BASE = "openai/whisper-large-v3-turbo"
-MAX_STEPS, BATCH, ACCUM, LR = 3000, 4, 4, 1e-4   # batch 8 runs out of memory on a 16 GB T4
+MAX_STEPS, BATCH, ACCUM, LR = 1500, 4, 4, 1e-4   # batch 8 runs out of memory on a 16 GB T4
 '''),
     code('''
 import torch
@@ -332,7 +352,8 @@ print(ds)
 from dataclasses import dataclass
 from peft import LoraConfig, get_peft_model
 
-model = WhisperForConditionalGeneration.from_pretrained(BASE, torch_dtype=torch.float16)
+# fp32 weights: with fp16 weights under fp16 autocast the loss went to NaN in the first steps.
+model = WhisperForConditionalGeneration.from_pretrained(BASE, torch_dtype=torch.float32)
 model.config.forced_decoder_ids = None
 model.generation_config.language, model.generation_config.task = "tamil", "transcribe"
 model = get_peft_model(model, LoraConfig(r=32, lora_alpha=64, lora_dropout=0.05,
@@ -348,12 +369,20 @@ class Collator:
         if (lab[:, 0] == processor.tokenizer.convert_tokens_to_ids("<|startoftranscript|>")).all():
             lab = lab[:, 1:]
         inputs["labels"] = lab
-        inputs["input_features"] = inputs["input_features"].half()
         return inputs
 '''),
     code('''
 import evaluate
-from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments
+import math
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, TrainerCallback
+
+class StopOnBrokenLoss(TrainerCallback):
+    """Fail in minutes instead of burning GPU hours on a run that has stopped learning."""
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        loss = (logs or {}).get("loss")
+        if loss is not None and (math.isnan(loss) or loss == 0 or loss > 50):
+            raise RuntimeError(f"training broke at step {state.global_step}: loss={loss}")
+
 cer = evaluate.load("cer")
 
 def metrics(pred):
@@ -363,8 +392,8 @@ def metrics(pred):
     return {"cer": cer.compute(predictions=hyp, references=ref)}
 
 trainer = Seq2SeqTrainer(
-    model=model, data_collator=Collator(), train_dataset=ds["train"], eval_dataset=ds["test"].select(range(min(300, len(ds["test"])))),
-    compute_metrics=metrics,
+    model=model, data_collator=Collator(), train_dataset=ds["train"], eval_dataset=ds["test"].select(range(min(100, len(ds["test"])))),
+    compute_metrics=metrics, callbacks=[StopOnBrokenLoss()],
     args=Seq2SeqTrainingArguments(
         output_dir="/kaggle/working/whisper_out", per_device_train_batch_size=BATCH, gradient_accumulation_steps=ACCUM,
         learning_rate=LR, warmup_steps=200, max_steps=MAX_STEPS, fp16=True, eval_strategy="steps", eval_steps=500,

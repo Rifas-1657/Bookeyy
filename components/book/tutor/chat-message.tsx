@@ -106,7 +106,7 @@ export function ChatMessageItem({ message, revealCount, onOpenSource }: ChatMess
               <button
                 type="button"
                 onClick={() => onOpenSource(source.pageIndex)}
-                aria-label={`${source.label} — open this mock lesson page`}
+                aria-label={`${source.label} — open this lesson page`}
                 className="inline-flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 text-[11px] text-foreground/80 transition-colors hover:bg-white/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-book-orange focus-visible:outline-none"
               >
                 <BookOpenText className="size-3.5 text-book-amber" aria-hidden="true" />

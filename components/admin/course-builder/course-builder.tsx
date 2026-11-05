@@ -243,7 +243,7 @@ export function CourseBuilder() {
           <>
             {client?.mode === 'live' && (
               <BookeyBadge tone="success" icon={<CircleCheck aria-hidden="true" />}>
-                Live API
+                Connected
               </BookeyBadge>
             )}
             {client?.mode === 'demo' && (
