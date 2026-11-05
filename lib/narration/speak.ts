@@ -39,7 +39,20 @@ function speechChunks(text: string): string[] {
     if (last >= 0 && chunks[last].length + sentence.length < 220 && chunks.length > 1) chunks[last] += ` ${sentence}`
     else chunks.push(sentence)
   }
+  // A short opening clip is what the learner waits for, so cut the first sentence at a comma.
+  const comma = chunks[0]?.indexOf(', ', 24) ?? -1
+  if (comma > 0 && comma < 90) chunks.splice(0, 1, chunks[0].slice(0, comma + 1), chunks[0].slice(comma + 2))
   return chunks.length ? chunks : [text]
+}
+
+const cleanForSpeech = (text: string) => text.replace(/```[\s\S]*?```/g, ' ').replace(/[*_`#>]/g, '').trim()
+
+/** Starts synthesizing clips that are already final, so they are ready when speakAnswer plays them. */
+export function prefetchSpeech(text: string, lang: TutorLanguage) {
+  if (!ttsAvailable() || typeof window === 'undefined') return
+  const chunks = speechChunks(cleanForSpeech(text).slice(0, 4800))
+  // The last piece may still be growing while the answer streams in.
+  for (const chunk of chunks.slice(0, -1).slice(0, 3)) synthesize(chunk, { lang }).catch(() => {})
 }
 
 const silent = (): SpokenAnswer => ({ done: Promise.resolve(), stop: () => {}, getLevel: () => 0, audible: false })
@@ -49,7 +62,7 @@ const silent = (): SpokenAnswer => ({ done: Promise.resolve(), stop: () => {}, g
  * narration), otherwise the browser's speech synthesis in the learner's chosen voice.
  */
 export function speakAnswer(text: string, options: { lang: TutorLanguage; rate?: number; muted?: boolean }): SpokenAnswer {
-  const clean = text.replace(/```[\s\S]*?```/g, ' ').replace(/[*_`#>]/g, '').trim()
+  const clean = cleanForSpeech(text)
   if (!clean || options.muted || typeof window === 'undefined') return silent()
 
   if (ttsAvailable()) {
@@ -66,6 +79,7 @@ export function speakAnswer(text: string, options: { lang: TutorLanguage; rate?:
       if (stopped) return finish()
       const next = i + 1 < chunks.length ? fetchChunk(i + 1) : null
       next?.catch(() => {})
+      if (i + 2 < chunks.length) fetchChunk(i + 2).catch(() => {})
       const url = URL.createObjectURL(clip.blob)
       const release = () => URL.revokeObjectURL(url)
       audio = new Audio(url)

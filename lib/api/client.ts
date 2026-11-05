@@ -421,6 +421,13 @@ export async function synthesizeSpeech(
   return res.blob()
 }
 
+let speechHints: { language?: string; context?: string } = {}
+
+/** What the reader is showing: tells speech recognition the language and the words to expect. */
+export function setSpeechHints(hints: { language?: string; context?: string }) {
+  speechHints = hints
+}
+
 /**
  * POST /api/voice/stt — Transcribe audio recording via Groq Whisper.
  * Sends recorded audio Blob as multipart/form-data.
@@ -439,8 +446,12 @@ export async function transcribeAudio(
 
   const formData = new FormData()
   formData.append('file', file, filename)
-  if (language) {
-    formData.append('language', language)
+  const hintLanguage = language ?? speechHints.language
+  if (hintLanguage) {
+    formData.append('language', hintLanguage)
+  }
+  if (speechHints.context) {
+    formData.append('context', speechHints.context.slice(0, 400))
   }
 
   const res = await authorizedFetch('/api/voice/stt', {

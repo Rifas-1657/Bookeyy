@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { notify } from '@/components/ui-kit/toast'
 import { isBackendConfigured } from '@/lib/api/auth'
 import { findPageIndex, pageInChapter } from '@/lib/mock/book-pages'
+import { setSpeechHints } from '@/lib/api/client'
 import { warmNarration } from '@/lib/narration/warm'
 import type { LearningChapter, LearningCourseId } from '@/lib/mock/learning'
 import type { LibraryBookmark, LibraryNote, PageRef } from '@/lib/mock/library'
@@ -34,7 +35,7 @@ import { deriveCueVisuals } from '@/lib/narration/cues'
 import { useNarrationStream } from '@/lib/narration/use-narration-stream'
 import type { NarrationCueEvent } from '@/types/book'
 import { getOfflineBook } from '@/lib/offline/db'
-import { speakAnswer, type SpokenAnswer } from '@/lib/narration/speak'
+import { prefetchSpeech, speakAnswer, type SpokenAnswer } from '@/lib/narration/speak'
 import { LessonRecap } from './lesson-recap'
 import { OfflineControl } from './offline-control'
 import { TutorCard } from './tutor/tutor-card'
@@ -127,6 +128,14 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   const index = chosenIndex ?? (hydrated ? Math.max(savedIndex, 0) : null)
   const page = index !== null ? pages[index] : undefined
   const nextPageId = index !== null ? pages[index + 1]?.id : undefined
+
+  useEffect(() => {
+    setSpeechHints({
+      language: personalization.language === 'english' ? 'en' : undefined,
+      context: page ? [page.title, ...(page.keyTerms ?? [])].join(', ') : undefined,
+    })
+    return () => setSpeechHints({})
+  }, [page, personalization.language])
 
   useEffect(() => {
     if (page) warmNarration(course.id, page.id)
@@ -438,6 +447,11 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
 
   // Speak the answer once it has fully streamed in, then carry on with the lesson.
   const latest = tutor.latest
+  useEffect(() => {
+    if (card.open && card.mode === 'answer' && latest?.text && !latest.final && !narrationMuted) {
+      prefetchSpeech(latest.text, personalization.language)
+    }
+  }, [card.open, card.mode, latest?.text, latest?.final, narrationMuted, personalization.language])
   useEffect(() => {
     if (!card.open || card.mode !== 'answer' || !latest?.final || spokenForRef.current === latest.questionId) return
     spokenForRef.current = latest.questionId
@@ -923,8 +937,8 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
                       kind="check"
                       text={
                         personalization.language === 'english'
-                          ? 'Page done! Quick 3-question check before you move on?'
-                          : 'Page mudinjadhu! Move panradhukku munnaadi oru quick check?'
+                          ? 'Quick 3-question check before you move on?'
+                          : 'Move panradhukku munnaadi oru quick check?'
                       }
                       acceptLabel={personalization.language === 'english' ? 'Check me' : 'Check pannunga'}
                       declineLabel="Skip the check"

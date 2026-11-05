@@ -16,6 +16,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.dependencies import get_current_user
@@ -62,6 +63,33 @@ def _out(row: CourseSurvey) -> SurveyOut:
     )
 
 
+async def store_answers(db: AsyncSession, user_id: str, course_id: str, body: SurveyAnswers) -> CourseSurvey:
+    """Create or replace answers. Two saves can arrive together: the loser updates the winner's row."""
+    answers = body.model_dump()
+    # Genre only applies to movie lovers; drop stale picks.
+    if "movies" not in answers["interests"]:
+        answers["movieGenre"] = None
+    answers["interests"] = list(dict.fromkeys(answers["interests"]))
+    query = select(CourseSurvey).where(CourseSurvey.user_id == user_id, CourseSurvey.course_id == course_id)
+
+    row = (await db.execute(query)).scalar_one_or_none()
+    if row is None:
+        row = CourseSurvey(user_id=user_id, course_id=course_id, answers=answers)
+        db.add(row)
+        try:
+            await db.commit()
+            await db.refresh(row)
+            return row
+        except IntegrityError:
+            await db.rollback()
+            row = (await db.execute(query)).scalar_one()
+    row.answers = answers
+    row.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(row)
+    return row
+
+
 @router.get("", response_model=list[SurveyOut])
 async def list_surveys(
     current_user: User = Depends(get_current_user),
@@ -80,27 +108,7 @@ async def save_survey(
 ) -> SurveyOut:
     if await db.get(Course, course_id) is None:
         raise HTTPException(status_code=404, detail=f"Course {course_id!r} not found")
-    answers = body.model_dump()
-    # Genre only applies to movie lovers; drop stale picks.
-    if "movies" not in answers["interests"]:
-        answers["movieGenre"] = None
-    answers["interests"] = list(dict.fromkeys(answers["interests"]))
-
-    result = await db.execute(
-        select(CourseSurvey).where(
-            CourseSurvey.user_id == current_user.id, CourseSurvey.course_id == course_id
-        )
-    )
-    row = result.scalar_one_or_none()
-    if row is None:
-        row = CourseSurvey(user_id=current_user.id, course_id=course_id, answers=answers)
-        db.add(row)
-    else:
-        row.answers = answers
-        row.updated_at = datetime.utcnow()
-    await db.commit()
-    await db.refresh(row)
-    return _out(row)
+    return _out(await store_answers(db, current_user.id, course_id, body))
 
 
 @router.delete("/{course_id}", status_code=204, response_class=Response)

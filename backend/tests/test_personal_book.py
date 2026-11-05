@@ -3,6 +3,7 @@ tests/test_personal_book.py — open signup and the survey-built Python book.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import uuid
 
@@ -99,3 +100,24 @@ async def test_second_model_takes_over_when_the_first_is_full(monkeypatch):
     chapter = personal.select_chapters(ANSWERS)[0]
     texts = await personal._personal_text(chapter, ANSWERS, "Asha", deadline=personal.time.monotonic() + 5)
     assert len(texts) == len(chapter[5])
+
+
+@pytest.mark.asyncio
+async def test_two_survey_saves_at_once_do_not_collide(app_client):
+    from app.api.surveys import SurveyAnswers, store_answers
+
+    async with AsyncSessionLocal() as db:
+        user = User(email=f"s-{uuid.uuid4().hex[:8]}@example.com", display_name="Race", role="learner", password_hash="x")
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    body = SurveyAnswers.model_validate(ANSWERS)
+
+    async def save():
+        async with AsyncSessionLocal() as db:
+            return await store_answers(db, user.id, "python", body)
+
+    await asyncio.gather(save(), save())
+    async with AsyncSessionLocal() as db:
+        rows = (await db.execute(select(func.count(CourseSurvey.id)).where(CourseSurvey.user_id == user.id))).scalar_one()
+    assert rows == 1

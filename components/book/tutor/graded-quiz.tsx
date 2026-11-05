@@ -4,6 +4,7 @@ import { Check, ListChecks, Loader2, Mic, RotateCcw, Send, Sparkles, X } from 'l
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { gradeAnswer, startQuiz, type GradeResponse, type QuizQuestion } from '@/lib/learning'
 import { quizSummaryLine, type Lang, type QuizPage } from '@/lib/learning/model'
+import { prefetchSpeech } from '@/lib/narration/speak'
 import { cn } from '@/lib/utils'
 import { useVoiceQuestion } from './use-voice-question'
 
@@ -84,9 +85,11 @@ export function GradedQuiz({ courseId, page, pages, language, mode, speak, stopS
         const intro = mode === 'review'
           ? en ? 'Quick review of the ideas you missed earlier.' : 'Munnaadi miss panna points-a quick-a review pannalaam.'
           : mode === 'check'
-            ? en ? 'Page done! A quick check before we move on.' : 'Page mudinjadhu! Move panradhukku munnaadi oru quick check.'
+            ? en ? 'A quick check before we move on.' : 'Move panradhukku munnaadi oru quick check.'
             : en ? `Here is a ${quiz.questions.length}-question quiz on this page.` : `Indha page-la ${quiz.questions.length} questions. Ready-a?`
         void speak(`${intro} ${quiz.questions[0].prompt}`)
+        // The next prompts are known now: have them ready before the learner gets there.
+        quiz.questions.slice(1).forEach((question) => prefetchSpeech(`${question.prompt} .`, language))
       })
       .catch((err: unknown) => {
         if (alive) setPhase({ kind: 'error', message: err instanceof Error ? err.message : 'Could not start the quiz.' })

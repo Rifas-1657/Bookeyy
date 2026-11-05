@@ -464,6 +464,7 @@ async def preview_voice(req: PreviewRequest, _admin=Depends(require_admin)) -> d
 async def speech_to_text(
     request: Request,
     file: UploadFile = File(..., description="Recorded audio file"),
+    context: str | None = Form(default=None, max_length=400, description="Words likely to be said: page title and key terms"),
     language: str | None = Form(default=None, description="Optional BCP-47 language hint, e.g. 'ta' or 'en'"),
     user: User = Depends(get_current_user),
 ) -> STTResponse:
@@ -531,7 +532,7 @@ async def speech_to_text(
         stt_provider = GroqWhisperSTT(
             api_key=settings.groq_api_key,
             model=settings.bookey_stt_model or settings.groq_whisper_model,
-            vocab_hint=DEFAULT_TANG_VOCAB_HINT,
+            vocab_hint=(f"Python lesson. {context}. " if context else "") + ("" if language == "en" else DEFAULT_TANG_VOCAB_HINT),
         )
     else:
         raise HTTPException(

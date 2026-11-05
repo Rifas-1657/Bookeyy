@@ -201,6 +201,9 @@ async def start(user: User, base_course: str = BASE_COURSE) -> dict:
             LearnerBook.created_at >= since))).scalar_one()
     if survey is None:
         raise PersonalBookError("Answer the survey first.", 409)
+    current = await latest(user)
+    if current and current["status"] in runner.NON_TERMINAL:
+        return {"jobId": current["jobId"], "courseId": current["courseId"], "status": current["status"]}
     if made >= MAX_PER_DAY and user.role != "admin":
         raise PersonalBookError(f"You can rebuild your book {MAX_PER_DAY} times a day. Try again tomorrow.", 429)
 

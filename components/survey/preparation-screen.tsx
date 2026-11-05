@@ -6,13 +6,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
-import { apiJson, isBackendConfigured } from '@/lib/api/auth'
+import { apiJson, AuthError, isBackendConfigured } from '@/lib/api/auth'
 import { easeOutExpo } from '@/lib/motion'
 import { refreshPersonalBook } from '@/lib/stores/progress'
 import type { Personalization } from '@/lib/stores/personalization'
 import { cn } from '@/lib/utils'
 
 const POLL_MS = 3000
+const START_TRIES = 5
+const START_TIMEOUT_MS = 30000
 
 interface BookStep {
   key: string
@@ -60,10 +62,28 @@ export function PreparationScreen({ courseId, courseTitle, answers, summary, onE
     }
     if (started.current === attempt) return
     started.current = attempt
-    apiJson(`/me/surveys/${courseId}`, { method: 'PUT', body: JSON.stringify(answers) })
-      .then(() => apiJson('/api/books/personal', { method: 'POST' }))
-      .then(() => setWatching(attempt + 1))
-      .catch((error) => setFailure(error instanceof Error ? error.message : 'We could not start your book.'))
+    const begin = async () => {
+      for (let tries = 1; ; tries++) {
+        try {
+          await apiJson('/api/books/personal', {
+            method: 'POST',
+            body: JSON.stringify(answers),
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(START_TIMEOUT_MS),
+          })
+          setWatching(attempt + 1)
+          return
+        } catch (error) {
+          const final = error instanceof AuthError && error.status < 500
+          if (final || tries === START_TRIES) {
+            setFailure(error instanceof Error && final ? error.message : 'We could not start your book. Please try again.')
+            return
+          }
+          await new Promise((resolve) => window.setTimeout(resolve, 3000))
+        }
+      }
+    }
+    void begin()
   }, [answers, attempt, courseId, personal, router])
 
   useEffect(() => {

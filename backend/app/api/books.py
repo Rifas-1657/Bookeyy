@@ -33,15 +33,18 @@ import shutil
 import tempfile
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import StreamingResponse
 from starlette.datastructures import UploadFile
 
 from app.auth.dependencies import get_current_user
+from app.api.surveys import SurveyAnswers, store_answers
 from app.books import personal, service
 from app.books.limits import AUDIO_EXTS, DOCUMENT_EXTS, IMAGE_EXTS, VIDEO_EXTS, get_media_limits
 from app.books.service import BookError, MediaIn, UploadIn
 from app.course_builder import runner
 from app.course_builder.sse import job_event_stream
+from app.db.database import get_db
 from app.db.models import User
 from app.middleware.rate_limit import books_limit, limiter
 
@@ -206,8 +209,14 @@ async def my_books(user: User = Depends(get_current_user)) -> list[dict]:
 
 
 @router.post("/personal", status_code=status.HTTP_201_CREATED)
-async def create_personal(user: User = Depends(get_current_user)) -> dict:
-    """Build the learner's own Python book from their saved survey."""
+async def create_personal(
+    answers: SurveyAnswers | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Save the survey (when sent) and build the learner's own Python book from it."""
+    if answers is not None:
+        await store_answers(db, user.id, personal.BASE_COURSE, answers)
     try:
         return await personal.start(user)
     except personal.PersonalBookError as exc:
