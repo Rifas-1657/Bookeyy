@@ -420,7 +420,7 @@ NB4 = [
 # Bookey 4 — Lightweight Tanglish voices with Piper
 
 Piper (VITS) voices are ~60 MB ONNX files that speak faster than real time on a plain CPU, so
-Bookey can talk instantly without a GPU. This fine-tunes a public Piper `medium` checkpoint on the
+Bookey can talk instantly without a GPU. This fine-tunes the public-domain LJSpeech Piper `medium` checkpoint on the
 Tanglish dataset from notebook 1, **multi-speaker**, then adds two **house voices** that are the
 average of many speakers (one male, one female) — the result speaks in a native Tanglish *style*
 without copying any single person.
@@ -496,10 +496,10 @@ print(len(rows), "clips,", round(sum(meta.set_index("speaker_id").duration.group
 '''),
     code('''
 from huggingface_hub import hf_hub_download
-base = hf_hub_download("rhasspy/piper-checkpoints", "en/en_US/lessac/medium/epoch=2164-step=1355540.ckpt", repo_type="dataset")
+base = hf_hub_download("rhasspy/piper-checkpoints", "en/en_US/ljspeech/medium/lj-med_1000.ckpt"   # LJSpeech: public domain, repo_type="dataset")
 previous = sorted(glob.glob("/kaggle/input/**/piper/**/last.ckpt", recursive=True))
 start = f"--ckpt_path {previous[-1]}" if previous else f"--model.warmstart_ckpt {base}"
-print("starting from", previous[-1] if previous else "the public Lessac checkpoint")
+print("starting from", previous[-1] if previous else "the public-domain LJSpeech checkpoint")
 cmd = (f"python3 -m piper.train fit --data.voice_name bookey_tanglish --data.csv_path {CSV} --data.audio_dir {WAVS} "
        f"--model.sample_rate {SR} --data.espeak_voice ta --data.cache_dir /kaggle/tmp/piper/cache "
        f"--data.config_path {OUT}/config.json --data.batch_size 24 --trainer.max_epochs {MAX_EPOCHS} "
