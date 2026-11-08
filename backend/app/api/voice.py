@@ -540,6 +540,17 @@ async def speech_to_text(
             detail=f"STT provider '{provider_name}' is not configured",
         )
 
+    if settings.voice_space_url and settings.voice_space_token:
+        # The Tanglish-tuned recognizer first; the configured provider only if it fails.
+        from app.voice.stt.space_stt import SpaceSTT
+        try:
+            result = await SpaceSTT(settings.voice_space_url, settings.voice_space_token, context or "").transcribe(
+                audio_bytes=audio_bytes, mime=mime, hint_lang=language)
+            if result.transcript.strip():
+                return STTResponse(transcript=result.transcript, language=result.language, duration_s=result.duration_s)
+        except (httpx.HTTPError, ValueError, KeyError) as exc:
+            log.warning("voice service STT failed, falling back: %s", type(exc).__name__)
+
     try:
         result = await stt_provider.transcribe(
             audio_bytes=audio_bytes,

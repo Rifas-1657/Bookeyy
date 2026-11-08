@@ -282,6 +282,9 @@ class Settings(BaseSettings):
     faster_whisper_compute_type: str = "auto"
     bookey_stt_model: str = "whisper-large-v3-turbo"
     groq_whisper_model: str = "whisper-large-v3-turbo"
+    # Bookey's own voices + Tanglish STT (tools/voice-space); empty = not used
+    voice_space_url: str = ""
+    voice_space_token: str = ""
 
     # TTS: Bodhan Indic-Speak (paid, opt-in)
     bodhan_api_key: str = ""

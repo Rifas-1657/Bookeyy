@@ -117,6 +117,9 @@ def make_provider(name: str, lang: str = "tanglish", gender: str = "") -> "TextT
             from app.voice.tts.gemini_tts import GeminiTTSProvider
             return GeminiTTSProvider(api_key=s.gemini_api_key, model=s.bookey_tts_model,
                                      default_voice=s.bookey_tts_voice, style=s.bookey_tts_style)
+        if name == "space" and s.voice_space_url and s.voice_space_token:
+            from app.voice.tts.space_tts_provider import SpaceTTSProvider
+            return SpaceTTSProvider(s.voice_space_url, s.voice_space_token, lang=lang, gender=gender)
         if name == "silent":
             from app.voice.tts.silent import SilentTTS
             return SilentTTS()
@@ -131,7 +134,8 @@ def get_tts_chain(lang: str = "tanglish", gender: str = "") -> list["TextToSpeec
     from app.voice.tts.silent import SilentTTS
     s = get_settings()
     lang = "english" if _normalize_lang(lang) == "english" else "tanglish"
-    names: list[str] = []
+    # Bookey's own voices first when the voice service is configured; Edge stays the fallback.
+    names: list[str] = ["space"] if s.voice_space_url and s.voice_space_token else []
     override = s.tts_provider.lower()
     if override not in ("local", "", "auto"):
         names.append(override)
