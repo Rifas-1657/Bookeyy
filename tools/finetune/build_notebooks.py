@@ -457,7 +457,7 @@ import glob, io, json, os, random
 import numpy as np, soundfile as sf, librosa
 from datasets import load_dataset
 
-SMOKE_TEST = True
+SMOKE_TEST = False
 SPEAKERS_PER_GENDER = 6 if SMOKE_TEST else 20
 MINUTES_PER_SPEAKER = 1.5 if SMOKE_TEST else 2.5      # ~1.7 h in total for the full run
 MAX_EPOCHS = 2 if SMOKE_TEST else 1500                 # ~75 vocoder passes over clips of ~7 s
@@ -534,7 +534,10 @@ print({k: v for k, v in id_map.items() if k.startswith("bookey_")}, os.path.gets
 '''),
     code('''
 # Listen: both house voices on a Tanglish teaching sentence, timed on CPU.
-import time
+# /kaggle/working/piper (this notebook's output) would shadow the piper package, so import from elsewhere.
+import sys, time
+os.chdir('/kaggle/tmp')
+sys.path = [p for p in sys.path if p not in ('', '/kaggle/working')]
 from piper import PiperVoice, SynthesisConfig
 from IPython.display import Audio, display
 voice = PiperVoice.load(f"{OUT}/ta-bookey-medium.onnx", config_path=f"{OUT}/ta-bookey-medium.onnx.json", use_cuda=False)
