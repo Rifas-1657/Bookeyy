@@ -71,7 +71,9 @@ def groq(model: str, language: str | None = None):
 
 
 def local(model_path: str):
+    from app.voice.stt.faster_whisper import _add_nvidia_dll_dirs
     from faster_whisper import WhisperModel
+    _add_nvidia_dll_dirs()   # cuBLAS from the pip CUDA wheels
     try:
         model = WhisperModel(model_path, device="cuda", compute_type="int8_float16")
     except Exception:                           # noqa: BLE001 - no usable GPU

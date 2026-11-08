@@ -425,15 +425,31 @@ Tanglish dataset from notebook 1, **multi-speaker**, then adds two **house voice
 average of many speakers (one male, one female) — the result speaks in a native Tanglish *style*
 without copying any single person.
 
-* Kaggle: GPU **T4 x2**, Internet on, attach the output of `bookey-1-tanglish-dataset`. No secrets.
+* Kaggle: GPU **T4** (one is used), Internet on, attach the output of `bookey-1-tanglish-dataset`. No secrets.
 * Sessions stop at 11 h and save `last.ckpt`; attach this notebook's own output to resume.
 * `SMOKE_TEST = True` first: 2 epochs on a small subset, checks training, averaging and export.
 '''),
     code('''
 !apt-get -qq update && apt-get -qq install -y build-essential cmake ninja-build espeak-ng > /dev/null
-!git clone -q https://github.com/OHF-voice/piper1-gpl.git /kaggle/working/piper1-gpl 2>/dev/null || true
-%cd /kaggle/working/piper1-gpl
-!pip -q install -e '.[train]' && ./build_monotonic_align.sh > /dev/null && python3 setup.py build_ext --inplace > /dev/null
+# Built outside /kaggle/working so the notebook's output stays small.
+!git clone -q https://github.com/OHF-voice/piper1-gpl.git /kaggle/tmp/piper1-gpl 2>/dev/null || true
+%cd /kaggle/tmp/piper1-gpl
+# The val_mos checkpoint needs the UTMOS scorer from torch.hub (GitHub); when that download is
+# refused, current Lightning raises instead of skipping. Keep the val_mel and last.ckpt checkpoints.
+_main = "src/piper/train/__main__.py"
+_src = open(_main).read()
+_at = _src.index('monitor="val_mos"')
+_begin = _src.rindex("ModelCheckpoint(", 0, _at)
+_src = _src[:_begin] + _src[_src.index("),", _at) + 2:]
+# New torch exports through torch.export (dynamo), which trips on VITS' spline flow; use the classic exporter.
+_exp = "src/piper/train/export_onnx.py"
+_e = open(_exp).read()
+assert "opset_version=OPSET_VERSION," in _e
+open(_exp, "w").write(_e.replace("opset_version=OPSET_VERSION,", "opset_version=OPSET_VERSION, dynamo=False,", 1))
+open(_main, "w").write(_src)
+!pip -q install scikit-build cmake ninja onnx onnxscript onnxruntime && pip -q install -e '.[train]'
+!./build_monotonic_align.sh > /dev/null && python3 setup.py build_ext --inplace 2>&1 | tail -3
+!python3 -c "from piper import espeakbridge; print('espeak bridge ok')"
 %cd /kaggle/working
 '''),
     code('''
@@ -487,8 +503,9 @@ print("starting from", previous[-1] if previous else "the public Lessac checkpoi
 cmd = (f"python3 -m piper.train fit --data.voice_name bookey_tanglish --data.csv_path {CSV} --data.audio_dir {WAVS} "
        f"--model.sample_rate {SR} --data.espeak_voice ta --data.cache_dir /kaggle/tmp/piper/cache "
        f"--data.config_path {OUT}/config.json --data.batch_size 24 --trainer.max_epochs {MAX_EPOCHS} "
-       f"--trainer.max_time 00:11:00:00 --trainer.devices 2 --trainer.strategy ddp --trainer.accelerator gpu "
-       f"--trainer.default_root_dir {OUT} --model.mos_metric none {start}")
+       # One GPU: under DDP only rank 0 writes the voice config and rank 1 fails in setup().
+       f"--trainer.max_time 00:11:00:00 --trainer.devices 1 --trainer.accelerator gpu "
+       f"--trainer.default_root_dir {OUT} --model.num_speakers {len(GENDER)} {start}")
 print(cmd)
 !{cmd} 2>&1 | grep -vE "^\\s*$" | tail -60
 assert glob.glob(f"{OUT}/lightning_logs/*/checkpoints/last.ckpt"), "training failed: see the log above"
@@ -533,12 +550,23 @@ for gender in ("female", "male"):
 ]
 
 
+# Bookey 5: the same recipe as notebook 3 on whisper-small, light enough for a free CPU server.
+NB5 = [
+    {**cell, "source": [line.replace("whisper-large-v3-turbo", "whisper-small")
+                        .replace("Whisper Tanglish LoRA", "Whisper-small Tanglish LoRA")
+                        .replace("MAX_STEPS, BATCH, ACCUM, LR = 1500, 4, 4, 1e-4", "MAX_STEPS, BATCH, ACCUM, LR = 3000, 16, 1, 1e-4")
+                        for line in cell["source"]]}
+    for cell in NB3
+]
+
+
 def main() -> None:
     for name, cells, gpu in [
         ("01_build_tanglish_dataset.ipynb", NB1, False),
         ("02_finetune_indic_parler_style.ipynb", NB2, True),
         ("03_finetune_whisper_tanglish_lora.ipynb", NB3, True),
         ("04_finetune_piper_tanglish.ipynb", NB4, True),
+        ("05_finetune_whisper_small.ipynb", NB5, True),
     ]:
         (HERE / name).write_text(json.dumps(notebook(cells, gpu), ensure_ascii=False, indent=1), encoding="utf-8")
         print("wrote", name)
