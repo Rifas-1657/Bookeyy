@@ -496,7 +496,7 @@ print(len(rows), "clips,", round(sum(meta.set_index("speaker_id").duration.group
 '''),
     code('''
 from huggingface_hub import hf_hub_download
-base = hf_hub_download("rhasspy/piper-checkpoints", "en/en_US/ljspeech/medium/lj-med_1000.ckpt"   # LJSpeech: public domain, repo_type="dataset")
+base = hf_hub_download("rhasspy/piper-checkpoints", "en/en_US/ljspeech/medium/lj-med_1000.ckpt", repo_type="dataset")   # LJSpeech: public domain
 previous = sorted(glob.glob("/kaggle/input/**/piper/**/last.ckpt", recursive=True))
 start = f"--ckpt_path {previous[-1]}" if previous else f"--model.warmstart_ckpt {base}"
 print("starting from", previous[-1] if previous else "the public-domain LJSpeech checkpoint")
