@@ -32,7 +32,7 @@ from app.course_builder import runner
 from app.course_builder.publish import _diagram_from_ideas, _norm, _WORD
 from app.course_builder.schema import CreateJobRequest
 from app.db.database import AsyncSessionLocal
-from app.db.models import Chapter, Course, CourseBuildJob, CourseSurvey, LearnerBook, Page, User
+from app.db.models import Chapter, Course, CourseBuildJob, CourseSurvey, LearnerBook, Notification, Page, User
 from app.llm.providers.groq import GroqProvider
 from app.llm.router import LLMError, get_llm_router
 
@@ -196,9 +196,11 @@ async def start(user: User, base_course: str = BASE_COURSE) -> dict:
     async with AsyncSessionLocal() as db:
         survey = (await db.execute(select(CourseSurvey).where(
             CourseSurvey.user_id == user.id, CourseSurvey.course_id == base_course))).scalar_one_or_none()
-        made = (await db.execute(select(func.count(LearnerBook.id)).where(
-            LearnerBook.owner_id == user.id, LearnerBook.origin == "personal",
-            LearnerBook.created_at >= since))).scalar_one()
+        # Builds (first book and every rebuild), not books: a retake reuses the same book.
+        made = (await db.execute(select(func.count(CourseBuildJob.id)).where(
+            CourseBuildJob.created_by == user.id, CourseBuildJob.created_at >= since,
+            CourseBuildJob.course_id.in_(select(LearnerBook.course_id).where(
+                LearnerBook.owner_id == user.id, LearnerBook.origin == "personal"))))).scalar_one()
     if survey is None:
         raise PersonalBookError("Answer the survey first.", 409)
     current = await latest(user)
@@ -209,17 +211,24 @@ async def start(user: User, base_course: str = BASE_COURSE) -> dict:
 
     first = (user.display_name or "you").split()[0]
     answers = survey.answers
+    # Retaking the survey rebuilds the same book in place: same course id, so page ids
+    # ({course}-c{n}-p{k}) and the learner's reading progress carry over.
+    existing = current["courseId"] if current and current["ready"] else None
     req = CreateJobRequest(title=f"Python for {first}"[:200], level=answers.get("level", "new"),
                            language=answers.get("language", "tanglish"),
-                           syllabus_text="Personal copy of the Bookey Python book.")
+                           syllabus_text="Personal copy of the Bookey Python book.", course_id=existing)
     job = await runner.create_job(req, user.id)
 
     def _steps(j: CourseBuildJob) -> None:
         j.steps = [{"key": k, "label": label, "status": "pending", "detail": ""} for k, label in STEPS]
     await runner._mutate(job.id, _steps)
     async with AsyncSessionLocal() as db:
-        db.add(LearnerBook(course_id=job.course_id, job_id=job.id, owner_id=user.id, origin="personal",
-                           source_label="Your survey", visibility="private", ai_knowledge=False))
+        row = (await db.execute(select(LearnerBook).where(LearnerBook.course_id == job.course_id))).scalar_one_or_none()
+        if row is None:
+            db.add(LearnerBook(course_id=job.course_id, job_id=job.id, owner_id=user.id, origin="personal",
+                               source_label="Your survey", visibility="private", ai_knowledge=False))
+        else:
+            row.job_id = job.id
         await db.commit()
     from app.jobs import queue
     # Ahead of long "create a book" builds: a learner is watching this one.
@@ -325,15 +334,31 @@ async def build(job_id: str, user_id: str) -> None:
         j.status, j.published_at = "ready", datetime.utcnow()
         _step(j, "publish", "done")
     await runner._mutate(job_id, _ready)
+    async with AsyncSessionLocal() as db:
+        db.add(Notification(user_id=user_id, kind="book_ready", title="Your book is ready",
+                            body=f"Python for {name} is written and waiting for you. Open it and press Listen."))
+        await db.commit()
 
 
 async def _publish(course_id: str, chapters: list[tuple], book: dict, answers: dict,
                    personal: dict[int, list[dict]], name: str) -> None:
     tanglish = answers.get("language") == "tanglish"
     async with AsyncSessionLocal() as db:
-        await db.execute(delete(Page).where(Page.course_id == course_id))
-        await db.execute(delete(Chapter).where(Chapter.course_id == course_id))
-        if await db.get(Course, course_id) is None:
+        # Update in place rather than delete + insert: progress rows cascade from pages, so a
+        # rebuild keeps every page id that still exists (and the progress on it).
+        old_chapters = {c.number: c for c in (await db.execute(
+            select(Chapter).where(Chapter.course_id == course_id))).scalars()}
+        old_pages = {p.id: p for p in (await db.execute(
+            select(Page).where(Page.course_id == course_id))).scalars()}
+        course = await db.get(Course, course_id)
+        if course is not None:
+            course.level = {"new": "Beginner", "basics": "Intermediate", "projects": "Advanced"}.get(
+                answers.get("level"), "Beginner")
+            course.language = "Tanglish" if tanglish else "English"
+            course.topics = [c[1] for c in chapters]
+            course.tutor_style = ("Tanglish narration (Tamil + English technical terms)" if tanglish
+                                  else "English narration")
+        else:
             db.add(Course(
                 id=course_id, title=f"Python for {name}"[:200],
                 subtitle="Your own Python book, written around your goal and the things you love.",
@@ -347,18 +372,35 @@ async def _publish(course_id: str, chapters: list[tuple], book: dict, answers: d
                 tutor_style="Tanglish narration (Tamil + English technical terms)" if tanglish else "English narration",
             ))
             await db.flush()
+        keep: set[str] = set()
         for number, ch in enumerate(chapters, start=1):
             texts = personal.get(ch[0]) or []
-            chapter = Chapter(course_id=course_id, number=number, title=ch[1][:200], summary=ch[2],
-                              page_count=len(ch[5]), locked=False)
-            db.add(chapter)
+            chapter = old_chapters.get(number)
+            if chapter is None:
+                chapter = Chapter(course_id=course_id, number=number, title="", locked=False)
+                db.add(chapter)
+            chapter.title, chapter.summary, chapter.page_count = ch[1][:200], ch[2], len(ch[5])
             await db.flush()
             for i in range(len(ch[5])):
                 extra = texts[i] if i < len(texts) and isinstance(texts[i], dict) else {}
-                db.add(Page(id=f"{course_id}-c{number}-p{i + 1}"[:80], course_id=course_id, chapter_id=chapter.id,
-                            page_number=i + 1,
-                            **page_fields(book[f"{ch[0]}.{i + 1}"], answers, opening=str(extra.get("opening") or ""),
-                                          task=str(extra.get("task") or ""))))
+                page_id = f"{course_id}-c{number}-p{i + 1}"[:80]
+                keep.add(page_id)
+                fields = page_fields(book[f"{ch[0]}.{i + 1}"], answers, opening=str(extra.get("opening") or ""),
+                                     task=str(extra.get("task") or ""))
+                page = old_pages.get(page_id)
+                if page is None:
+                    db.add(Page(id=page_id, course_id=course_id, chapter_id=chapter.id, page_number=i + 1, **fields))
+                else:
+                    for field, value in fields.items():
+                        setattr(page, field, value)
+        # Pages and chapters the new plan no longer has (a shorter book after the retake).
+        # SQL deletes, not ORM ones: the ORM would try to null progress.page_id first.
+        gone = [pid for pid in old_pages if pid not in keep]
+        if gone:
+            await db.execute(delete(Page).where(Page.id.in_(gone)))
+        extra = [c.id for n, c in old_chapters.items() if n > len(chapters)]
+        if extra:
+            await db.execute(delete(Chapter).where(Chapter.id.in_(extra)))
         await db.commit()
         from app.api.search import refresh_search_index
         await refresh_search_index(db)

@@ -91,6 +91,13 @@ def create_refresh_token(user_id: str, token_version: int = 0) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
 
 
+def create_email_verify_token(user_id: str, email: str) -> str:
+    """Signed, 3-day link token. Carries the email so a changed address can't be verified by an old link."""
+    now = datetime.now(timezone.utc)
+    payload = {"sub": user_id, "email": email, "iat": now, "exp": now + timedelta(days=3), "type": "verify_email"}
+    return jwt.encode(payload, settings.secret_key, algorithm=settings.jwt_algorithm)
+
+
 def decode_token(token: str) -> dict:
     """Raises jwt.InvalidTokenError on any failure."""
     return jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])

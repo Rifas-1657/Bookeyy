@@ -7,6 +7,10 @@ POST /auth/logout    — clear cookies
 POST /auth/refresh   — rotate refresh token → new access token
 POST /auth/password-reset/request  — request reset (emailed; see app/auth/mailer.py)
 POST /auth/password-reset/confirm  — confirm reset with token + new password
+GET  /auth/me                      — the signed-in account (name, email, verified)
+PATCH /auth/me                     — change the display name
+POST /auth/verify-email            — confirm the email with the token from the signup email
+POST /auth/verify-email/resend     — send the verification email again
 
 Cookie strategy:
   - access_token:  httpOnly, SameSite=Lax (Strict in prod), 15 min
@@ -19,6 +23,7 @@ use HTTPS + SameSite=None;Secure with a same-site proxy (Next.js rewrites).
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import jwt
 from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, HTTPException, Request, Response, status
@@ -28,12 +33,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import service
 from app.auth.dependencies import _resolve_token, get_current_user
-from app.auth.mailer import send_password_reset
+from app.auth.mailer import send_email_verification, send_password_reset
 from app.auth.service import (
     bump_token_version,
     token_version_matches,
     consume_password_reset_token,
     create_access_token,
+    create_email_verify_token,
     create_password_reset_token,
     create_refresh_token,
     decode_token,
@@ -95,6 +101,27 @@ class MessageResponse(BaseModel):
     message: str
 
 
+class AccountOut(BaseModel):
+    user_id: str
+    email: str
+    display_name: str
+    role: str
+    email_verified: bool
+
+
+class AccountUpdate(BaseModel):
+    display_name: str = Field(min_length=1, max_length=120)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+def _account(user: User) -> AccountOut:
+    return AccountOut(user_id=user.id, email=user.email, display_name=user.display_name, role=user.role,
+                      email_verified=user.email_verified_at is not None)
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -127,6 +154,7 @@ async def signup(
     request: Request,
     body: SignupRequest,
     response: Response,
+    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> AuthResponse:
     # 1. Check email uniqueness
@@ -154,6 +182,9 @@ async def signup(
     refresh_token = create_refresh_token(user.id, user.token_version or 0)
     _set_auth_cookies(response, access_token, refresh_token)
 
+    # Learning is never blocked on this; the app shows a gentle banner until it's done.
+    background.add_task(send_email_verification, user.email, user.display_name,
+                        create_email_verify_token(user.id, user.email))
     log.info("User signed up: %s role=%s", user.email, user.role)
     return AuthResponse(
         access_token=access_token,
@@ -320,3 +351,60 @@ async def confirm_password_reset(
 
     log.info("Password reset completed for %s", user.email)
     return MessageResponse(message="Password updated successfully")
+
+
+@router.get("/me", response_model=AccountOut)
+async def get_account(current_user: User = Depends(get_current_user)) -> AccountOut:
+    return _account(current_user)
+
+
+@router.patch("/me", response_model=AccountOut)
+async def update_account(
+    body: AccountUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AccountOut:
+    name = body.display_name.strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="Enter a display name.")
+    current_user.display_name = name
+    await db.commit()
+    return _account(current_user)
+
+
+@router.post("/verify-email", response_model=AccountOut)
+@limiter.limit(auth_limit)
+async def verify_email(
+    request: Request,
+    body: VerifyEmailRequest,
+    db: AsyncSession = Depends(get_db),
+) -> AccountOut:
+    bad = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This link is invalid or has expired.")
+    try:
+        payload = decode_token(body.token)
+    except jwt.InvalidTokenError:
+        raise bad
+    if payload.get("type") != "verify_email":
+        raise bad
+    user = await db.get(User, payload.get("sub"))
+    if user is None or user.email != payload.get("email"):
+        raise bad
+    if user.email_verified_at is None:
+        user.email_verified_at = datetime.utcnow()
+        await db.commit()
+        log.info("Email verified for user_id=%s", user.id)
+    return _account(user)
+
+
+@router.post("/verify-email/resend", response_model=MessageResponse)
+@limiter.limit(auth_limit)
+async def resend_verification(
+    request: Request,
+    background: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+) -> MessageResponse:
+    if current_user.email_verified_at is not None:
+        return MessageResponse(message="Your email is already confirmed.")
+    background.add_task(send_email_verification, current_user.email, current_user.display_name,
+                        create_email_verify_token(current_user.id, current_user.email))
+    return MessageResponse(message="Verification email sent.")

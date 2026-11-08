@@ -6,7 +6,9 @@ import { accessibilityChoices, interestChoices, languageChoices, paceChoices, st
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
 import { notify } from '@/components/ui-kit/toast'
 import { FormSection, SegmentedControl, SettingSwitch } from '@/components/workspace/form-controls'
+import { updateDisplayName, useSession } from '@/lib/api/auth'
 import type { LearningCourseId } from '@/lib/mock/learning'
+import { remoteAccount } from '@/lib/stores/account'
 import { EMAIL_PATTERN, NAME_MAX, useProfile, type LearnerProfile } from '@/lib/stores/profile'
 import { useHydrated } from '@/lib/stores/personalization'
 import { cn } from '@/lib/utils'
@@ -16,11 +18,11 @@ import { RetakeSurvey } from './retake-survey'
 
 type Errors = Partial<Record<'displayName' | 'email', string>>
 
-function validate(draft: LearnerProfile): Errors {
+function validate(draft: LearnerProfile, checkEmail: boolean): Errors {
   const errors: Errors = {}
   if (!draft.displayName.trim()) errors.displayName = 'Enter a display name.'
   else if (draft.displayName.trim().length > NAME_MAX) errors.displayName = `Keep it under ${NAME_MAX} characters.`
-  if (!EMAIL_PATTERN.test(draft.email.trim())) errors.email = 'Enter an email like name@example.com.'
+  if (checkEmail && !EMAIL_PATTERN.test(draft.email.trim())) errors.email = 'Enter an email like name@example.com.'
   return errors
 }
 
@@ -76,8 +78,10 @@ function TextField({
 export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseId }) {
   const hydrated = useHydrated()
   const { profile, save } = useProfile()
+  const session = useSession()
   const [draft, setDraft] = useState<LearnerProfile | null>(null)
   const [errors, setErrors] = useState<Errors>({})
+  const [saving, setSaving] = useState(false)
   const editing = draft !== null
   const current = draft ?? profile
 
@@ -93,18 +97,32 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
     setErrors({})
   }
 
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!draft) return
-    const nextErrors = validate(draft)
+    if (!draft || saving) return
+    // The account email is fixed when signed in; only check the local-only one.
+    const nextErrors = validate(draft, !session)
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
       notify.error('Check the highlighted fields')
       return
     }
-    if (save({ ...draft, displayName: draft.displayName.trim(), email: draft.email.trim() })) {
+    const displayName = draft.displayName.trim()
+    // Signed in: the name belongs to the account, so every device sees it.
+    if (session && displayName !== session.displayName) {
+      setSaving(true)
+      try {
+        remoteAccount.set(await updateDisplayName(displayName))
+      } catch {
+        setSaving(false)
+        notify.error('Could not save your name', 'Check your connection and try again.')
+        return
+      }
+      setSaving(false)
+    }
+    if (save({ ...draft, displayName, email: draft.email.trim() })) {
       setDraft(null)
-      notify.demo('Profile saved')
+      notify.success('Profile saved')
     } else {
       notify.error('Could not save', 'Browser storage is unavailable or full.')
     }
@@ -134,7 +152,7 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
             label="Email"
             type="email"
             value={current.email}
-            readOnly={!editing}
+            readOnly={!editing || Boolean(session)}
             autoComplete="email"
             error={errors.email}
             onChange={(email) => patch({ email })}
@@ -230,7 +248,7 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
       <div className="sticky bottom-24 z-10 flex flex-col gap-3 rounded-3xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Info aria-hidden="true" className="size-4 shrink-0" />
-          Profile changes are stored in this browser.
+          {session ? 'Your name is saved to your account.' : 'Profile changes are stored in this browser.'}
         </p>
         <div className="flex gap-2">
           {editing ? (
@@ -238,7 +256,9 @@ export function ProfileForm({ initialCourse }: { initialCourse?: LearningCourseI
               <BookeyButton type="button" variant="ghost" onClick={cancel}>
                 Cancel
               </BookeyButton>
-              <BookeyButton type="submit">Save changes</BookeyButton>
+              <BookeyButton type="submit" disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </BookeyButton>
             </>
           ) : (
             <BookeyButton type="button" onClick={startEdit} disabled={!hydrated}>

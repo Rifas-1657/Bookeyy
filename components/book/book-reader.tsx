@@ -1,6 +1,6 @@
 'use client'
 
-import { Award, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -37,7 +37,7 @@ import type { NarrationCueEvent } from '@/types/book'
 import { getOfflineBook } from '@/lib/offline/db'
 import { prefetchSpeech, speakAnswer, type SpokenAnswer } from '@/lib/narration/speak'
 import { LessonRecap } from './lesson-recap'
-import { OfflineControl } from './offline-control'
+import { OfflineControl, useOfflineDownload } from './offline-control'
 import { TutorCard } from './tutor/tutor-card'
 import { GradedQuiz, type QuizMode } from './tutor/graded-quiz'
 import { LearningOffer } from './tutor/learning-offer'
@@ -604,6 +604,7 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
   /* ------------------------------- lesson recap ------------------------------- */
 
   const [recapChapter, setRecapChapter] = useState<number | null>(null)
+  const offline = useOfflineDownload(course, pages)
   const chapterPages = useCallback((n: number) => pages.filter((entry) => entry.chapterNumber === n), [pages])
   const isLastOfChapter = Boolean(page && chapterPages(page.chapterNumber).at(-1)?.id === page.id)
   useEffect(() => {
@@ -783,23 +784,8 @@ function BookReaderInner({ course, pages, initialChapter, initialPage }: BookRea
         onStopListen={handleStopListen}
         playbackRate={narrationRate}
         onRateChange={setNarrationRate}
-        offlineSlot={
-          <>
-            {page && (
-              <button
-                type="button"
-                onClick={() => setRecapChapter(recapChapter === null ? page.chapterNumber : null)}
-                aria-pressed={recapChapter !== null}
-                aria-label="Lesson recap"
-                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 text-xs font-medium backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-pressed:border-primary/50 aria-pressed:bg-primary/20"
-              >
-                <Award className="size-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">Recap</span>
-              </button>
-            )}
-            <OfflineControl course={course} pages={pages} compact />
-          </>
-        }
+        recap={page ? { open: recapChapter !== null, toggle: () => setRecapChapter(recapChapter === null ? page.chapterNumber : null) } : undefined}
+        offline={offline}
       />
 
       <div className="relative z-10 flex min-h-0 flex-1">

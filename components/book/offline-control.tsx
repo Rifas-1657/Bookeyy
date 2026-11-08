@@ -26,18 +26,8 @@ export function useOfflineBook(courseId: string) {
   return saved
 }
 
-/** "Download for offline" button that turns into the "Available offline" badge. */
-export function OfflineControl({
-  course,
-  pages,
-  compact = false,
-  className,
-}: {
-  course: DownloadCourse
-  pages: BookLessonPage[]
-  compact?: boolean
-  className?: string
-}) {
+/** Download state for one book; lives in the reader so a closed menu never loses progress. */
+export function useOfflineDownload(course: DownloadCourse, pages: BookLessonPage[]) {
   const saved = useOfflineBook(course.id)
   const [progress, setProgress] = useState<DownloadProgress | null>(null)
 
@@ -55,6 +45,25 @@ export function OfflineControl({
       setProgress(null)
     }
   }
+
+  return { saved, progress, download }
+}
+
+export type OfflineDownload = ReturnType<typeof useOfflineDownload>
+
+/** "Download for offline" button that turns into the "Available offline" badge. */
+export function OfflineControl({
+  course,
+  pages,
+  compact = false,
+  className,
+}: {
+  course: DownloadCourse
+  pages: BookLessonPage[]
+  compact?: boolean
+  className?: string
+}) {
+  const { saved, progress, download } = useOfflineDownload(course, pages)
 
   if (saved?.complete && !progress) {
     return (

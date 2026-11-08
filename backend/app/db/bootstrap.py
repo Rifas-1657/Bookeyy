@@ -50,6 +50,10 @@ async def _sqlite_dev_fixups(conn) -> None:
     if users and "token_version" not in users:
         await conn.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0"))
         log.info("Added users.token_version column (SQLite auto-migration)")
+    # users.email_verified_at (migration 0010)
+    if users and "email_verified_at" not in users:
+        await conn.execute(text("ALTER TABLE users ADD COLUMN email_verified_at DATETIME"))
+        log.info("Added users.email_verified_at column (SQLite auto-migration)")
     # jobs became the durable queue (migration 0007). The old table was never written to,
     # so drop it and let create_all build the new shape.
     jobs = await cols("jobs")

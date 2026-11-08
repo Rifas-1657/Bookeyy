@@ -1,15 +1,13 @@
 'use client'
 
-import { BellOff, BookOpen, CheckCheck, Circle, GraduationCap, MailOpen, RotateCcw, Settings2, X } from 'lucide-react'
+import { BellOff, BookOpen, CheckCheck, Circle, GraduationCap, MailOpen, Settings2, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
 import { EmptyState } from '@/components/ui-kit/empty-state'
 import { Hint } from '@/components/ui-kit/hint'
-import { notify } from '@/components/ui-kit/toast'
 import { INBOX_CATEGORIES, type InboxCategory, type InboxItem } from '@/lib/mock/inbox'
 import { useNotificationCenter } from '@/lib/stores/notifications'
-import { useHydrated } from '@/lib/stores/personalization'
 import { cn } from '@/lib/utils'
 
 type Filter = 'all' | InboxCategory
@@ -21,8 +19,8 @@ const CATEGORY_ICON: Record<InboxCategory, React.ReactNode> = {
 }
 
 export function NotificationCenter() {
-  const hydrated = useHydrated()
-  const { items, unreadCount, setRead, markAllRead, remove } = useNotificationCenter()
+  const { items, status, unreadCount, markRead, markAllRead, remove } = useNotificationCenter()
+  const loading = status === 'loading' || status === 'idle'
   const [filter, setFilter] = useState<Filter>('all')
 
   const visible = filter === 'all' ? items : items.filter((item) => item.category === filter)
@@ -33,12 +31,11 @@ export function NotificationCenter() {
   ]
 
   const handleRemove = (item: InboxItem) => {
-    remove(item.id)
-    notify.demo('Notification removed', item.title)
+    void remove(item.id)
   }
 
   return (
-    <section aria-labelledby="inbox-heading" aria-busy={!hydrated} className="rounded-3xl border border-border bg-card p-4 sm:p-6">
+    <section aria-labelledby="inbox-heading" aria-busy={loading} className="rounded-3xl border border-border bg-card p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 id="inbox-heading" className="font-display text-lg font-semibold">
           Inbox <span className="text-sm font-normal text-muted-foreground">· {unreadCount} unread</span>
@@ -48,8 +45,7 @@ export function NotificationCenter() {
           variant="secondary"
           disabled={visibleUnread.length === 0}
           onClick={() => {
-            markAllRead(visibleUnread.map((i) => i.id))
-            notify.demo('All caught up')
+            void markAllRead(visibleUnread.map((i) => i.id))
           }}
         >
           <CheckCheck aria-hidden="true" />
@@ -89,8 +85,14 @@ export function NotificationCenter() {
         <EmptyState
           className="mt-6"
           icon={<BellOff />}
-          title={items.length === 0 ? 'No notifications' : 'Nothing in this category'}
-          description={items.length === 0 ? 'Nothing here right now.' : 'Try another category.'}
+          title={loading ? 'Loading…' : items.length === 0 ? 'You are all caught up' : 'Nothing in this category'}
+          description={
+            loading
+              ? 'Checking for new notifications.'
+              : items.length === 0
+                ? 'We will let you know when your book is ready or a review is due.'
+                : 'Try another category.'
+          }
         />
       ) : (
         <ul className="mt-4 divide-y divide-border">
@@ -118,7 +120,9 @@ export function NotificationCenter() {
                   {item.href && (
                     <Link
                       href={item.href}
-                      onClick={() => setRead(item.id, true)}
+                      onClick={() => {
+                        if (!item.read) void markRead(item.id)
+                      }}
                       className="font-medium text-primary underline-offset-4 hover:underline"
                     >
                       {item.cta ?? 'Open'}
@@ -127,17 +131,19 @@ export function NotificationCenter() {
                 </div>
               </div>
               <div className="flex shrink-0 items-start gap-1">
-                <Hint label={item.read ? 'Mark as unread' : 'Mark as read'}>
-                  <BookeyButton
-                    size="icon"
-                    variant="ghost"
-                    className="size-9"
-                    aria-label={`${item.read ? 'Mark as unread' : 'Mark as read'}: ${item.title}`}
-                    onClick={() => setRead(item.id, !item.read)}
-                  >
-                    {item.read ? <Circle aria-hidden="true" /> : <MailOpen aria-hidden="true" />}
-                  </BookeyButton>
-                </Hint>
+                {!item.read && (
+                  <Hint label="Mark as read">
+                    <BookeyButton
+                      size="icon"
+                      variant="ghost"
+                      className="size-9"
+                      aria-label={`Mark as read: ${item.title}`}
+                      onClick={() => void markRead(item.id)}
+                    >
+                      <MailOpen aria-hidden="true" />
+                    </BookeyButton>
+                  </Hint>
+                )}
                 <Hint label="Remove">
                   <BookeyButton
                     size="icon"

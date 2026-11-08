@@ -415,11 +415,130 @@ print("Done: download whisper_ct2 from this notebook's output and set FASTER_WHI
 ]
 
 
+NB4 = [
+    md('''
+# Bookey 4 — Lightweight Tanglish voices with Piper
+
+Piper (VITS) voices are ~60 MB ONNX files that speak faster than real time on a plain CPU, so
+Bookey can talk instantly without a GPU. This fine-tunes a public Piper `medium` checkpoint on the
+Tanglish dataset from notebook 1, **multi-speaker**, then adds two **house voices** that are the
+average of many speakers (one male, one female) — the result speaks in a native Tanglish *style*
+without copying any single person.
+
+* Kaggle: GPU **T4 x2**, Internet on, attach the output of `bookey-1-tanglish-dataset`. No secrets.
+* Sessions stop at 11 h and save `last.ckpt`; attach this notebook's own output to resume.
+* `SMOKE_TEST = True` first: 2 epochs on a small subset, checks training, averaging and export.
+'''),
+    code('''
+!apt-get -qq update && apt-get -qq install -y build-essential cmake ninja-build espeak-ng > /dev/null
+!git clone -q https://github.com/OHF-voice/piper1-gpl.git /kaggle/working/piper1-gpl 2>/dev/null || true
+%cd /kaggle/working/piper1-gpl
+!pip -q install -e '.[train]' && ./build_monotonic_align.sh > /dev/null && python3 setup.py build_ext --inplace > /dev/null
+%cd /kaggle/working
+'''),
+    code('''
+import glob, io, json, os, random
+import numpy as np, soundfile as sf, librosa
+from datasets import load_dataset
+
+SMOKE_TEST = True
+SPEAKERS_PER_GENDER = 6 if SMOKE_TEST else 20
+MINUTES_PER_SPEAKER = 1.5 if SMOKE_TEST else 2.5      # ~1.7 h in total for the full run
+MAX_EPOCHS = 2 if SMOKE_TEST else 1500                 # ~75 vocoder passes over clips of ~7 s
+SR = 22050
+WAVS, CSV = "/kaggle/tmp/piper/wavs", "/kaggle/tmp/piper/metadata.csv"
+OUT = "/kaggle/working/piper"
+os.makedirs(WAVS, exist_ok=True); os.makedirs(OUT, exist_ok=True)
+
+parts = sorted(glob.glob("/kaggle/input/**/part-*.parquet", recursive=True))
+assert parts, "attach the output of bookey-1-tanglish-dataset"
+ds = load_dataset("parquet", data_files=parts, split="train")
+ds = ds.filter(lambda s, d: s == "train" and 2.0 <= d <= 10.0, input_columns=["split", "duration"])
+meta = ds.select_columns(["speaker_id", "gender", "duration"]).to_pandas()
+totals = meta.groupby(["gender", "speaker_id"])["duration"].sum().reset_index()
+chosen = {g: list(totals[totals.gender == g].nlargest(SPEAKERS_PER_GENDER, "duration").speaker_id) for g in ("male", "female")}
+budget = {s: MINUTES_PER_SPEAKER * 60 for g in chosen for s in chosen[g]}
+print({g: len(v) for g, v in chosen.items()})
+
+rows = []
+for i, ex in enumerate(ds):
+    s = ex["speaker_id"]
+    if budget.get(s, 0) <= 0:
+        continue
+    audio, sr = sf.read(io.BytesIO(ex["audio"]["bytes"]), dtype="float32")
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
+    audio = librosa.resample(audio, orig_sr=sr, target_sr=SR)
+    name = f"u{i}.wav"
+    sf.write(f"{WAVS}/{name}", audio, SR)
+    rows.append(f"{name}|{s}|{ex['text'].replace('|', ' ').strip()}")
+    budget[s] -= ex["duration"]
+open(CSV, "w", encoding="utf-8").write("\\n".join(rows) + "\\n")
+GENDER = {s: g for g in chosen for s in chosen[g]}
+json.dump(GENDER, open(f"{OUT}/speaker_gender.json", "w"))
+print(len(rows), "clips,", round(sum(meta.set_index("speaker_id").duration.groupby(level=0).sum().clip(upper=MINUTES_PER_SPEAKER * 60)[list(GENDER)]) / 3600, 2), "h")
+'''),
+    code('''
+from huggingface_hub import hf_hub_download
+base = hf_hub_download("rhasspy/piper-checkpoints", "en/en_US/lessac/medium/epoch=2164-step=1355540.ckpt", repo_type="dataset")
+previous = sorted(glob.glob("/kaggle/input/**/piper/**/last.ckpt", recursive=True))
+start = f"--ckpt_path {previous[-1]}" if previous else f"--model.warmstart_ckpt {base}"
+print("starting from", previous[-1] if previous else "the public Lessac checkpoint")
+cmd = (f"python3 -m piper.train fit --data.voice_name bookey_tanglish --data.csv_path {CSV} --data.audio_dir {WAVS} "
+       f"--model.sample_rate {SR} --data.espeak_voice ta --data.cache_dir /kaggle/tmp/piper/cache "
+       f"--data.config_path {OUT}/config.json --data.batch_size 24 --trainer.max_epochs {MAX_EPOCHS} "
+       f"--trainer.max_time 00:11:00:00 --trainer.devices 2 --trainer.strategy ddp --trainer.accelerator gpu "
+       f"--trainer.default_root_dir {OUT} --model.mos_metric none {start}")
+print(cmd)
+!{cmd} 2>&1 | grep -vE "^\\s*$" | tail -60
+assert glob.glob(f"{OUT}/lightning_logs/*/checkpoints/last.ckpt"), "training failed: see the log above"
+'''),
+    code('''
+# House voices: average many speakers' embeddings per gender, so no single person's voice is reused.
+import torch
+last = sorted(glob.glob(f"{OUT}/lightning_logs/*/checkpoints/last.ckpt"), key=os.path.getmtime)[-1]
+ckpt = torch.load(last, map_location="cpu", weights_only=False)
+config = json.load(open(f"{OUT}/config.json"))
+id_map = config["speaker_id_map"]
+key = next(k for k in ckpt["state_dict"] if k.endswith("emb_g.weight"))
+emb = ckpt["state_dict"][key]
+houses = []
+for gender in ("female", "male"):
+    ids = [id_map[s] for s, g in GENDER.items() if g == gender and s in id_map]
+    houses.append(emb[ids].mean(dim=0, keepdim=True))
+    id_map[f"bookey_{gender}"] = emb.shape[0] + len(houses) - 1
+ckpt["state_dict"][key] = torch.cat([emb, *houses])
+ckpt["hyper_parameters"]["num_speakers"] = emb.shape[0] + 2
+config["num_speakers"] = emb.shape[0] + 2
+torch.save(ckpt, f"{OUT}/house.ckpt")
+json.dump(config, open(f"{OUT}/ta-bookey-medium.onnx.json", "w"), ensure_ascii=False, indent=1)
+!python3 -m piper.train.export_onnx --checkpoint {OUT}/house.ckpt --output-file {OUT}/ta-bookey-medium.onnx
+print({k: v for k, v in id_map.items() if k.startswith("bookey_")}, os.path.getsize(f"{OUT}/ta-bookey-medium.onnx") // 2**20, "MB")
+'''),
+    code('''
+# Listen: both house voices on a Tanglish teaching sentence, timed on CPU.
+import time
+from piper import PiperVoice, SynthesisConfig
+from IPython.display import Audio, display
+voice = PiperVoice.load(f"{OUT}/ta-bookey-medium.onnx", config_path=f"{OUT}/ta-bookey-medium.onnx.json", use_cuda=False)
+TEXT = "இன்னைக்கு நம்ம பைதான் வேரியபிள்ஸ் பத்தி கத்துக்கப்போறோம். ரொம்ப சிம்பிள் தான், கவலைப்படாதீங்க!"
+for gender in ("female", "male"):
+    t0 = time.time()
+    chunks = list(voice.synthesize(TEXT, SynthesisConfig(speaker_id=id_map[f"bookey_{gender}"])))
+    audio = np.concatenate([c.audio_float_array for c in chunks])
+    print(gender, f"{time.time() - t0:.2f}s on CPU for {len(audio) / chunks[0].sample_rate:.1f}s of speech")
+    sf.write(f"{OUT}/sample_{gender}.wav", audio, chunks[0].sample_rate)
+    display(Audio(audio, rate=chunks[0].sample_rate))
+'''),
+]
+
+
 def main() -> None:
     for name, cells, gpu in [
         ("01_build_tanglish_dataset.ipynb", NB1, False),
         ("02_finetune_indic_parler_style.ipynb", NB2, True),
         ("03_finetune_whisper_tanglish_lora.ipynb", NB3, True),
+        ("04_finetune_piper_tanglish.ipynb", NB4, True),
     ]:
         (HERE / name).write_text(json.dumps(notebook(cells, gpu), ensure_ascii=False, indent=1), encoding="utf-8")
         print("wrote", name)

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BookeyButton } from '@/components/ui-kit/bookey-button'
 import { apiJson, AuthError, isBackendConfigured } from '@/lib/api/auth'
 import { easeOutExpo } from '@/lib/motion'
+import { refreshNotifications } from '@/lib/stores/notifications'
 import { refreshPersonalBook } from '@/lib/stores/progress'
 import type { Personalization } from '@/lib/stores/personalization'
 import { cn } from '@/lib/utils'
@@ -98,6 +99,7 @@ export function PreparationScreen({ courseId, courseTitle, answers, summary, onE
         setBook(next)
         if (next.ready && next.courseId) {
           refreshPersonalBook()
+          refreshNotifications()
           router.replace(`/book/${next.courseId}`)
           return
         }

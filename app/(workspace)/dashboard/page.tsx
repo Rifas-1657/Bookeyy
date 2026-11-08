@@ -8,7 +8,7 @@ import { TodaysPractice } from '@/components/dashboard/todays-practice'
 import { featuredCourseId, getLearningCourse, learningCourses } from '@/lib/mock/learning'
 
 export const metadata: Metadata = {
-  title: 'Overview',
+  title: 'Home',
   description: 'Continue your book, practice for a few minutes, and track your progress across your courses.',
 }
 

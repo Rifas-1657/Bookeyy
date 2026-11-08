@@ -1,5 +1,5 @@
 """
-app/auth/mailer.py — send the password reset email.
+app/auth/mailer.py — send the password reset and email verification emails.
 
 Brevo's HTTP API is the default: its free plan needs no domain, and Render's free
 plan blocks outbound SMTP. SMTP stays as an option for other hosts.
@@ -40,10 +40,27 @@ def reset_link(raw_token: str) -> str:
     return f"{get_settings().public_app_url.rstrip('/')}/reset-password#token={raw_token}"
 
 
-def _send_smtp(to: str, body: str) -> None:
+VERIFY_SUBJECT = "Confirm your Bookey email"
+VERIFY_TEXT = """Hi {name},
+
+Welcome to Bookey. Please confirm this is your email address:
+
+{link}
+
+The link works for 3 days. If you didn't create a Bookey account, you can ignore this email.
+
+Bookey
+"""
+
+
+def verify_link(token: str) -> str:
+    return f"{get_settings().public_app_url.rstrip('/')}/verify-email#token={token}"
+
+
+def _send_smtp(to: str, body: str, subject: str = SUBJECT) -> None:
     s = get_settings()
     msg = EmailMessage()
-    msg["Subject"], msg["From"], msg["To"] = SUBJECT, s.mail_from, to
+    msg["Subject"], msg["From"], msg["To"] = subject, s.mail_from, to
     msg.set_content(body)
     with smtplib.SMTP(s.smtp_host, s.smtp_port, timeout=15) as server:
         server.starttls()
@@ -52,10 +69,8 @@ def _send_smtp(to: str, body: str) -> None:
         server.send_message(msg)
 
 
-async def send_password_reset(to: str, name: str, raw_token: str) -> None:
-    """Runs after the response is sent, so timing never reveals whether an account exists."""
+async def _deliver(to: str, subject: str, body: str, what: str) -> None:
     s = get_settings()
-    body = TEXT.format(name=name or "there", link=reset_link(raw_token))
     try:
         if s.brevo_api_key:
             async with httpx.AsyncClient(timeout=15) as client:
@@ -63,12 +78,23 @@ async def send_password_reset(to: str, name: str, raw_token: str) -> None:
                     "https://api.brevo.com/v3/smtp/email",
                     headers={"api-key": s.brevo_api_key},
                     json={"sender": {"name": "Bookey", "email": s.mail_from}, "to": [{"email": to}],
-                          "subject": SUBJECT, "textContent": body},
+                          "subject": subject, "textContent": body},
                 )
             resp.raise_for_status()
         elif s.smtp_host:
-            await asyncio.to_thread(_send_smtp, to, body)
+            await asyncio.to_thread(_send_smtp, to, body, subject)
         else:
-            log.error("Password reset email not sent: set BREVO_API_KEY and MAIL_FROM")
+            log.error("%s email not sent: set BREVO_API_KEY and MAIL_FROM", what)
     except (httpx.HTTPError, OSError, smtplib.SMTPException) as exc:
-        log.error("Password reset email failed: %s", type(exc).__name__)
+        log.error("%s email failed: %s", what, type(exc).__name__)
+
+
+async def send_password_reset(to: str, name: str, raw_token: str) -> None:
+    """Runs after the response is sent, so timing never reveals whether an account exists."""
+    body = TEXT.format(name=name or "there", link=reset_link(raw_token))
+    await _deliver(to, SUBJECT, body, "Password reset")
+
+
+async def send_email_verification(to: str, name: str, token: str) -> None:
+    body = VERIFY_TEXT.format(name=name or "there", link=verify_link(token))
+    await _deliver(to, VERIFY_SUBJECT, body, "Verification")

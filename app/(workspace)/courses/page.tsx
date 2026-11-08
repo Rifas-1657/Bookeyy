@@ -4,14 +4,14 @@ import { WorkspacePage } from '@/components/workspace/workspace-page'
 import { learningCourses } from '@/lib/mock/learning'
 
 export const metadata: Metadata = {
-  title: 'Courses',
+  title: 'Explore',
   description: 'Browse Bookey courses by topic, difficulty, and length.',
 }
 
 export default function CoursesPage() {
   return (
     <WorkspacePage
-      title="Course catalog"
+      title="Explore"
       description="Interactive books that teach one idea per page. Search by topic, filter by difficulty, and pick up where you left off."
     >
       <CourseCatalog courses={learningCourses} />

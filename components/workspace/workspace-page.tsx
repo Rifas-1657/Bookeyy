@@ -35,7 +35,7 @@ export function ComingSoon({ icon, title, description }: { icon: React.ReactNode
       className="py-16"
       action={
         <BookeyButton variant="outline" nativeButton={false} render={<Link href="/dashboard" />}>
-          Back to overview
+          Back to home
         </BookeyButton>
       }
     />

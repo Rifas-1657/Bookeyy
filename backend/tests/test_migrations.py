@@ -60,7 +60,7 @@ async def test_sqlite_migrations_match_models():
     _upgrade(url)
     diff, version, _ = await _diff(url)
     assert diff == [], diff
-    assert version == alembic_head() == "0009_pgvector_store"
+    assert version == alembic_head() == "0010_user_email_verified"
 
 
 @pytest.mark.skipif(not os.getenv("TEST_DATABASE_URL"), reason="PostgreSQL only (TEST_DATABASE_URL)")
@@ -79,4 +79,4 @@ def test_migration_chain_is_linear():
     script = ScriptDirectory.from_config(cfg)
     assert len(script.get_heads()) == 1
     revs = [r.revision for r in script.walk_revisions("base", "heads")]
-    assert revs[-1] == "0001_baseline" and revs[0] == "0009_pgvector_store" and len(revs) == 9
+    assert revs[-1] == "0001_baseline" and revs[0] == "0010_user_email_verified" and len(revs) == 10

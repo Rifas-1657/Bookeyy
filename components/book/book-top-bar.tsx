@@ -2,19 +2,23 @@
 
 import {
   ArrowLeft,
+  Award,
   Bookmark,
   BookmarkCheck,
   BookOpen,
+  CloudDownload,
   Loader2,
   Maximize,
   MessagesSquare,
   Minimize,
+  MoreHorizontal,
   PanelLeft,
   Pause,
-  Settings2,
+  ShieldCheck,
   Sparkles,
   Square,
   StickyNote,
+  Type,
   Volume2,
   WifiOff,
 } from 'lucide-react'
@@ -30,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { OfflineDownload } from '@/components/book/offline-control'
 import { cn } from '@/lib/utils'
 import { NARRATION_RATES, type NarrationRate, type ReaderViewMode } from '@/types/book'
 
@@ -62,8 +67,10 @@ interface BookTopBarProps {
   onStopListen?: () => void
   playbackRate?: NarrationRate
   onRateChange?: (rate: NarrationRate) => void
-  /** "Download for offline" / "Available offline" control. */
-  offlineSlot?: React.ReactNode
+  /** Lesson recap for the current chapter (shown in More). */
+  recap?: { open: boolean; toggle: () => void }
+  /** Offline download state (shown in More). */
+  offline?: OfflineDownload
 }
 
 const viewModes: { id: ReaderViewMode; label: string; icon: typeof BookOpen }[] = [
@@ -115,42 +122,7 @@ export function BookTopBar(props: BookTopBarProps) {
           )}
         </div>
 
-        <div
-          role="radiogroup"
-          aria-label="Reading mode"
-          className="hidden items-center rounded-full border border-white/10 bg-white/5 p-0.5 sm:flex"
-        >
-          {viewModes.map(({ id, label, icon: Icon }) => {
-            const active = props.viewMode === id
-            return (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                tabIndex={active ? 0 : -1}
-                onClick={() => props.onViewModeChange(id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-                    event.preventDefault()
-                    props.onViewModeChange(id === 'full' ? 'guided' : 'full')
-                  }
-                }}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <Icon className="size-3.5" aria-hidden="true" />
-                <span className="hidden lg:inline">{label}</span>
-                <span className="sr-only lg:hidden">{label}</span>
-              </button>
-            )
-          })}
-        </div>
-
         <div className="flex items-center gap-1.5">
-          {props.offlineSlot}
           {props.onToggleListen && (
             <div className="flex items-center gap-1" role="group" aria-label="Audio narration">
               {props.audioStatus && props.audioStatus !== 'idle' && (
@@ -231,55 +203,71 @@ export function BookTopBar(props: BookTopBarProps) {
             </div>
           )}
 
-          <Hint label={props.bookmarked ? 'Remove bookmark' : 'Bookmark this page'} side="bottom">
+          <Hint label={props.chatOpen ? 'Close tutor chat' : 'Ask the tutor about this page'} side="bottom">
             <button
               type="button"
-              className={glassButton}
-              aria-pressed={props.bookmarked}
-              aria-label="Bookmark this page"
-              onClick={props.onToggleBookmark}
-              disabled={disabled}
-            >
-              {props.bookmarked ? (
-                <BookmarkCheck className="size-4" aria-hidden="true" />
-              ) : (
-                <Bookmark className="size-4" aria-hidden="true" />
-              )}
-            </button>
-          </Hint>
-
-          <Hint label={props.notesOpen ? 'Close notes' : 'Notes & bookmarks'} side="bottom">
-            <button
-              type="button"
-              className={glassButton}
-              aria-pressed={props.notesOpen}
-              aria-label="Notes and bookmarks"
-              onClick={props.onToggleNotes}
-              disabled={disabled}
-            >
-              <StickyNote className="size-4" aria-hidden="true" />
-            </button>
-          </Hint>
-
-          <Hint label={props.chatOpen ? 'Close course chat' : 'Course chat'} side="bottom">
-            <button
-              type="button"
-              className={glassButton}
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 text-xs font-semibold backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 aria-pressed:border-primary/50 aria-pressed:bg-primary/20 aria-pressed:text-primary"
               aria-pressed={props.chatOpen}
-              aria-label="Course chat"
+              aria-label="Ask"
               onClick={props.onToggleChat}
               disabled={disabled}
             >
-              <MessagesSquare className="size-4" aria-hidden="true" />
+              <MessagesSquare className="size-3.5" aria-hidden="true" />
+              <span className="hidden sm:inline">Ask</span>
             </button>
           </Hint>
 
           <DropdownMenu>
-            <DropdownMenuTrigger className={glassButton} aria-label="Reader settings">
-              <Settings2 className="size-4" aria-hidden="true" />
+            <DropdownMenuTrigger className={cn(glassButton, 'relative')} aria-label="More reader options">
+                <MoreHorizontal className="size-4" aria-hidden="true" />
+                {props.offline?.progress && (
+                  <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary motion-safe:animate-pulse" />
+                )}
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="theme-night w-56">
-              <DropdownMenuGroup className="sm:hidden">
+            <DropdownMenuContent align="end" className="theme-night w-60">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={props.onToggleBookmark} disabled={disabled}>
+                  {props.bookmarked ? <BookmarkCheck aria-hidden="true" /> : <Bookmark aria-hidden="true" />}
+                  {props.bookmarked ? 'Remove bookmark' : 'Bookmark this page'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={props.onToggleNotes} disabled={disabled}>
+                  <StickyNote aria-hidden="true" />
+                  {props.notesOpen ? 'Close notes' : 'Notes and bookmarks'}
+                </DropdownMenuItem>
+                {props.recap && (
+                  <DropdownMenuItem onClick={props.recap.toggle} disabled={disabled}>
+                    <Award aria-hidden="true" />
+                    {props.recap.open ? 'Close lesson recap' : 'Lesson recap'}
+                  </DropdownMenuItem>
+                )}
+                {props.offline && (
+                  <DropdownMenuItem
+                    onClick={() => void props.offline?.download()}
+                    disabled={Boolean(props.offline.progress) || Boolean(props.offline.saved?.complete) || !props.online}
+                  >
+                    {props.offline.progress ? (
+                      <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                    ) : props.offline.saved?.complete ? (
+                      <ShieldCheck aria-hidden="true" />
+                    ) : (
+                      <CloudDownload aria-hidden="true" />
+                    )}
+                    {props.offline.progress
+                      ? `Saving ${Math.round((props.offline.progress.done / props.offline.progress.total) * 100)}%`
+                      : props.offline.saved?.complete
+                        ? 'Available offline'
+                        : 'Download for offline'}
+                  </DropdownMenuItem>
+                )}
+                {props.fullscreen.supported && (
+                  <DropdownMenuItem onClick={props.fullscreen.toggle}>
+                    {props.fullscreen.active ? <Minimize aria-hidden="true" /> : <Maximize aria-hidden="true" />}
+                    {props.fullscreen.active ? 'Exit fullscreen' : 'Fullscreen'}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
                 <DropdownMenuLabel>Reading mode</DropdownMenuLabel>
                 {viewModes.map(({ id, label, icon: Icon }) => (
                   <DropdownMenuItem key={id} onClick={() => props.onViewModeChange(id)}>
@@ -289,15 +277,17 @@ export function BookTopBar(props: BookTopBarProps) {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuGroup>
-              <DropdownMenuSeparator className="sm:hidden" />
+              <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuLabel>
                   Text size · <span className="font-mono">{Math.round(props.fontScale * 100)}%</span>
                 </DropdownMenuLabel>
                 <DropdownMenuItem closeOnClick={false} onClick={() => props.onFontScaleChange(props.fontScale + 0.05)}>
+                  <Type aria-hidden="true" />
                   Larger text
                 </DropdownMenuItem>
                 <DropdownMenuItem closeOnClick={false} onClick={() => props.onFontScaleChange(props.fontScale - 0.05)}>
+                  <Type aria-hidden="true" className="scale-75" />
                   Smaller text
                 </DropdownMenuItem>
                 <DropdownMenuItem closeOnClick={false} onClick={() => props.onFontScaleChange(1)}>
@@ -306,24 +296,6 @@ export function BookTopBar(props: BookTopBarProps) {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {props.fullscreen.supported && (
-            <Hint label={props.fullscreen.active ? 'Exit fullscreen' : 'Fullscreen'} side="bottom">
-              <button
-                type="button"
-                className={cn(glassButton, 'hidden sm:inline-flex')}
-                aria-pressed={props.fullscreen.active}
-                aria-label="Fullscreen"
-                onClick={props.fullscreen.toggle}
-              >
-                {props.fullscreen.active ? (
-                  <Minimize className="size-4" aria-hidden="true" />
-                ) : (
-                  <Maximize className="size-4" aria-hidden="true" />
-                )}
-              </button>
-            </Hint>
-          )}
         </div>
       </div>
 

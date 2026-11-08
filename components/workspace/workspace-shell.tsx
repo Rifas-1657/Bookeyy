@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { VerifyEmailBanner } from './verify-email-banner'
 import { MobileNavDrawer, MobileTabBar } from './workspace-mobile-nav'
 import { WorkspacePreferences } from './workspace-preferences'
 import { WorkspaceSidebar } from './workspace-sidebar'
@@ -25,6 +26,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
           onToggleCollapsed={() => setCollapsed((value) => !value)}
           onOpenMobileNav={() => setMobileNavOpen(true)}
         />
+        <VerifyEmailBanner />
         <main id="main" tabIndex={-1} className="flex-1 px-4 pt-6 pb-28 outline-none sm:px-6 lg:px-8 lg:pt-8 lg:pb-12">
           <WorkspacePreferences>{children}</WorkspacePreferences>
         </main>

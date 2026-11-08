@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, LogOut, Settings, ShieldCheck, UserRound } from 'lucide-react'
+import { Bell, LogOut, Settings, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 import {
@@ -17,7 +17,6 @@ import { logoutAndClear } from '@/lib/api/logout'
 import { getInitials, useProfile } from '@/lib/stores/profile'
 
 const ITEMS = [
-  { href: '/profile', label: 'Profile', icon: UserRound },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/notifications', label: 'Notifications', icon: Bell },
 ]

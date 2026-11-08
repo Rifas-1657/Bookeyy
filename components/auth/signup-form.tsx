@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { notify } from '@/components/ui-kit/toast'
-import { AuthError, isBackendConfigured, signup } from '@/lib/api/auth'
+import { AuthError, isBackendConfigured, safeNextPath, signup } from '@/lib/api/auth'
 import { AuthCheckbox, AuthField, PasswordField } from './auth-field'
 import { AuthSubmit, AuthSwitch, authLinkClass } from './auth-submit'
 import { PasswordStrengthMeter } from './password-strength'
@@ -20,6 +20,7 @@ import {
 type SignupField = 'name' | 'email' | 'password' | 'confirm' | 'terms'
 
 const DEMO_DELAY_MS = 800
+const NEW_LEARNER_PATH = '/courses/python/survey'
 
 export function SignupForm() {
   const router = useRouter()
@@ -70,7 +71,8 @@ export function SignupForm() {
     if (live) {
       try {
         await signup({ email: email.trim(), password, displayName: name.trim() })
-        router.replace('/dashboard')
+        // A new account has no book yet: go straight to the survey that writes it.
+        router.replace(safeNextPath(NEW_LEARNER_PATH))
       } catch (err) {
         setPending(false)
         if (err instanceof AuthError && err.status === 409) {
@@ -175,7 +177,7 @@ export function SignupForm() {
           </div>
         </fieldset>
         <p aria-live="polite" className="sr-only">
-          {pending ? (live ? 'Creating your account.' : 'Opening your dashboard.') : ''}
+          {pending ? (live ? 'Creating your account.' : 'Opening your workspace.') : ''}
         </p>
       </form>
       <AuthSwitch>

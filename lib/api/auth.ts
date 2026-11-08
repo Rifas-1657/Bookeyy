@@ -51,6 +51,7 @@ function readStored(storage: Storage): AuthSession | null {
       userId: parsed.userId,
       role: parsed.role === 'admin' ? 'admin' : 'learner',
       displayName: typeof parsed.displayName === 'string' ? parsed.displayName : '',
+      email: typeof parsed.email === 'string' ? parsed.email : undefined,
     }
   } catch {
     return null
@@ -243,6 +244,50 @@ export async function logout() {
   } finally {
     clearSession()
   }
+}
+
+export interface Account {
+  user_id: string
+  email: string
+  display_name: string
+  role: string
+  email_verified: boolean
+}
+
+/** Rewrites the stored session's name so every screen shows the new one at once. */
+function storeDisplayName(displayName: string) {
+  for (const storage of [sessionStorage, localStorage]) {
+    try {
+      const raw = storage.getItem(SESSION_KEY)
+      if (!raw) continue
+      storage.setItem(SESSION_KEY, JSON.stringify({ ...JSON.parse(raw), displayName }))
+    } catch {
+      // Storage blocked: the server already has the new name.
+    }
+  }
+  window.dispatchEvent(new Event(CHANGE_EVENT))
+}
+
+/** The signed-in account as the server sees it (`GET /auth/me`). */
+export function fetchAccount(): Promise<Account> {
+  return apiJson<Account>('/auth/me')
+}
+
+/** Saves the display name to the account (`PATCH /auth/me`). */
+export async function updateDisplayName(displayName: string): Promise<Account> {
+  const account = await apiJson<Account>('/auth/me', { method: 'PATCH', body: JSON.stringify({ display_name: displayName }) })
+  storeDisplayName(account.display_name)
+  return account
+}
+
+export async function verifyEmail(token: string): Promise<Account> {
+  const res = await send('/auth/verify-email', { method: 'POST', body: JSON.stringify({ token }) })
+  if (!res.ok) throw await errorFrom(res)
+  return (await res.json()) as Account
+}
+
+export function resendVerification(): Promise<{ message: string }> {
+  return apiJson<{ message: string }>('/auth/verify-email/resend', { method: 'POST' })
 }
 
 /** Single-use ticket the WebSocket gateway requires as its first frame. */
